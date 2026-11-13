@@ -4,6 +4,7 @@ require('../src/config'); // carrega o .env (as credenciais do seed podem vir de
 const request = require('supertest');
 const db = require('../src/db');
 const { criarApp } = require('../src/app');
+const { hojeSaoPaulo, somarDias } = require('../src/utils/datas');
 
 const CREDENCIAIS = {
   admin: {
@@ -19,6 +20,7 @@ const CREDENCIAIS = {
 // CPFs válidos (dígitos verificadores corretos) para usar nos testes.
 const CPF_1 = '529.982.247-25';
 const CPF_2 = '111.444.777-35';
+const CPF_3 = '390.533.447-05';
 
 // Cria as tabelas e roda os seeds (usuários, eventos e configuração padrão).
 async function iniciar() {
@@ -33,13 +35,33 @@ async function iniciar() {
   return criarApp();
 }
 
-// Volta ao estado inicial entre os testes: sem alunos/presenças e com a regra padrão (20 h).
+// Configuração de teste: mesma do seed (percentual 75%, carga 20 h), mas com as datas calculadas a
+// partir de HOJE, para os testes não dependerem do dia em que rodam:
+//   inscrições abertas (de uma semana atrás até uma semana adiante) e certificados já liberados.
+// "extra" sobrescreve qualquer campo.
+async function restaurarConfiguracao(extra = {}) {
+  const hoje = hojeSaoPaulo();
+  await db('configuracoes').del();
+  await db('configuracoes').insert({
+    modo_aprovacao: 'percentual',
+    valor_minimo: 75,
+    carga_horaria_certificado: 20,
+    certificados_a_partir_de: somarDias(hoje, -1),
+    inscricoes_de: somarDias(hoje, -7),
+    inscricoes_ate: somarDias(hoje, 7),
+    ignorar_datas: false,
+    coordenador_nome: '',
+    reitora_nome: 'Dra. Roselane Moita Pierot',
+    ...extra,
+  });
+}
+
+// Volta ao estado inicial entre os testes: sem alunos/presenças e com a configuração de teste.
 async function limpar() {
   await db('certificados').del();
   await db('frequencia').del();
   await db('alunos').del();
-  await db('configuracoes').del();
-  await db('configuracoes').insert({ modo_aprovacao: 'horas', valor_minimo: 20 });
+  await restaurarConfiguracao();
 }
 
 async function loginComo(app, papel) {
@@ -56,6 +78,7 @@ const alunoValido = (extra = {}) => ({
   cpf: CPF_1,
   matricula: '20231234',
   curso: 'Análise e Desenvolvimento de Sistemas',
+  disciplina: 'APIExt I',
   ...extra,
 });
 
@@ -69,16 +92,33 @@ async function listarEventos(app) {
   return res.body.eventos;
 }
 
+// Registra presença do aluno em todos os eventos informados (usa o login de professor).
+async function registrarPresencas(app, alunoId, eventos) {
+  const token = await loginComo(app, 'professor');
+  for (const evento of eventos) {
+    await request(app)
+      .post('/api/frequencia')
+      .set(auth(token))
+      .send({ aluno_id: alunoId, evento_id: evento.id })
+      .expect(201);
+  }
+}
+
 module.exports = {
   db,
   CREDENCIAIS,
   CPF_1,
   CPF_2,
+  CPF_3,
+  hojeSaoPaulo,
+  somarDias,
   iniciar,
   limpar,
+  restaurarConfiguracao,
   loginComo,
   auth,
   alunoValido,
   criarAluno,
   listarEventos,
+  registrarPresencas,
 };

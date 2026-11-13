@@ -4,13 +4,15 @@ const { assincrono } = require('../utils/async');
 
 const router = express.Router();
 
-// GET /api/eventos  (público) -> { eventos: [{ id, titulo, data, carga_horaria }] }
+// GET /api/eventos  (público)
+// -> { eventos: [{ id, titulo, data, hora_inicio, hora_fim, carga_horaria }] }
 router.get(
   '/',
   assincrono(async (req, res) => {
     const linhas = await db('eventos')
-      .select('id', 'titulo', 'data', 'carga_horaria')
+      .select('id', 'titulo', 'data', 'hora_inicio', 'hora_fim', 'carga_horaria')
       .orderBy('data')
+      .orderBy('hora_inicio')
       .orderBy('id');
 
     res.json({

@@ -10,6 +10,7 @@ const rotasInscricoes = require('./rotas/inscricoes');
 const rotasAlunos = require('./rotas/alunos');
 const rotasFrequencia = require('./rotas/frequencia');
 const rotasConfiguracoes = require('./rotas/configuracoes');
+const rotasCertificados = require('./rotas/certificados');
 
 function criarApp() {
   const app = express();
@@ -57,7 +58,9 @@ function criarApp() {
   app.use('/api/alunos', rotasAlunos);
   app.use('/api/frequencia', rotasFrequencia);
   app.use('/api/configuracoes', rotasConfiguracoes);
-  // POST /api/certificados/emitir será montado aqui pelo módulo de certificado.
+  // /api/certificados: a consulta pública está pronta; POST /api/certificados/emitir (admin) será
+  // acrescentado em src/rotas/certificados.js pelo módulo de certificado.
+  app.use('/api/certificados', rotasCertificados);
 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);

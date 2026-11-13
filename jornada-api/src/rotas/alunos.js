@@ -42,6 +42,8 @@ router.get(
         'alunos.cpf',
         'alunos.matricula',
         'alunos.curso',
+        'alunos.disciplina',
+        'alunos.formato',
         'alunos.criado_em'
       )
       .orderBy('alunos.nome')

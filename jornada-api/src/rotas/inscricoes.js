@@ -1,7 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const db = require('../db');
-const { conflito } = require('../erros');
+const { conflito, proibido } = require('../erros');
 const { assincrono } = require('../utils/async');
 const { ehViolacaoUnica } = require('../utils/erros-bd');
 const {
@@ -10,6 +10,14 @@ const {
   mascararCpf,
   normalizarTelefone,
 } = require('../utils/cpf');
+const {
+  DISCIPLINAS,
+  FORMATOS,
+  FORMATO_AUTOMATICO,
+  normalizarFormato,
+} = require('../utils/disciplinas');
+const { obterConfiguracao } = require('../servicos/configuracao');
+const { motivoInscricoesFechadas } = require('../servicos/periodos');
 
 const router = express.Router();
 
@@ -17,61 +25,93 @@ const texto = (msg) => z.string({ required_error: msg, invalid_type_error: msg }
 
 // Regra: todas as validações ficam em .refine e a limpeza (.transform) vem por último.
 // A mensagem que o cliente recebe por campo é a PRIMEIRA que falhar, na ordem abaixo.
-const inscricaoSchema = z.object({
-  nome: texto('Informe o nome completo.')
-    .trim()
-    .min(1, 'Informe o nome completo.')
-    .max(150, 'O nome deve ter no máximo 150 caracteres.')
-    .refine((v) => !/\d/.test(v), 'O nome não pode conter números.')
-    .refine(
-      (v) => v.split(/\s+/).filter(Boolean).length >= 2,
-      'Informe o nome completo (nome e sobrenome).'
-    )
-    .transform((v) => v.replace(/\s+/g, ' ')),
+const inscricaoSchema = z
+  .object({
+    nome: texto('Informe o nome completo.')
+      .trim()
+      .min(1, 'Informe o nome completo.')
+      .max(150, 'O nome deve ter no máximo 150 caracteres.')
+      .refine((v) => !/\d/.test(v), 'O nome não pode conter números.')
+      .refine(
+        (v) => v.split(/\s+/).filter(Boolean).length >= 2,
+        'Informe o nome completo (nome e sobrenome).'
+      )
+      .transform((v) => v.replace(/\s+/g, ' ')),
 
-  email: texto('Informe o e-mail.')
-    .trim()
-    .min(1, 'Informe o e-mail.')
-    .max(150, 'O e-mail deve ter no máximo 150 caracteres.')
-    .email('E-mail inválido.')
-    .transform((v) => v.toLowerCase()),
+    email: texto('Informe o e-mail.')
+      .trim()
+      .min(1, 'Informe o e-mail.')
+      .max(150, 'O e-mail deve ter no máximo 150 caracteres.')
+      .email('E-mail inválido.')
+      .transform((v) => v.toLowerCase()),
 
-  telefone: texto('Informe o telefone.')
-    .trim()
-    .min(1, 'Informe o telefone.')
-    .refine((v) => /^[\d\s()+\-]+$/.test(v), 'O telefone deve conter apenas números.')
-    .refine(
-      (v) => [10, 11].includes(normalizarTelefone(v).length),
-      'Telefone inválido. Informe o DDD e o número.'
-    )
-    .transform(normalizarTelefone),
+    telefone: texto('Informe o telefone.')
+      .trim()
+      .min(1, 'Informe o telefone.')
+      .refine((v) => /^[\d\s()+\-]+$/.test(v), 'O telefone deve conter apenas números.')
+      .refine(
+        (v) => [10, 11].includes(normalizarTelefone(v).length),
+        'Telefone inválido. Informe o DDD e o número.'
+      )
+      .transform(normalizarTelefone),
 
-  cpf: texto('Informe o CPF.')
-    .trim()
-    .min(1, 'Informe o CPF.')
-    .refine((v) => /^[\d.\-\s]+$/.test(v), 'O CPF deve conter apenas números.')
-    .refine((v) => somenteDigitos(v).length === 11, 'O CPF deve ter 11 dígitos.')
-    .refine((v) => cpfValido(v), 'CPF inválido.')
-    .transform(somenteDigitos),
+    cpf: texto('Informe o CPF.')
+      .trim()
+      .min(1, 'Informe o CPF.')
+      .refine((v) => /^[\d.\-\s]+$/.test(v), 'O CPF deve conter apenas números.')
+      .refine((v) => somenteDigitos(v).length === 11, 'O CPF deve ter 11 dígitos.')
+      .refine((v) => cpfValido(v), 'CPF inválido.')
+      .transform(somenteDigitos),
 
-  matricula: texto('Informe a matrícula.')
-    .trim()
-    .min(1, 'Informe a matrícula.')
-    .refine((v) => /^[\d.\-/\s]+$/.test(v), 'A matrícula deve conter apenas números.')
-    .refine(
-      (v) => {
-        const n = somenteDigitos(v).length;
-        return n >= 4 && n <= 20;
-      },
-      'Matrícula inválida (use de 4 a 20 dígitos).'
-    )
-    .transform(somenteDigitos),
+    matricula: texto('Informe a matrícula.')
+      .trim()
+      .min(1, 'Informe a matrícula.')
+      .refine((v) => /^[\d.\-/\s]+$/.test(v), 'A matrícula deve conter apenas números.')
+      .refine(
+        (v) => {
+          const n = somenteDigitos(v).length;
+          return n >= 4 && n <= 20;
+        },
+        'Matrícula inválida (use de 4 a 20 dígitos).'
+      )
+      .transform(somenteDigitos),
 
-  curso: texto('Informe o curso.')
-    .trim()
-    .min(1, 'Informe o curso.')
-    .max(100, 'O curso deve ter no máximo 100 caracteres.'),
-});
+    curso: texto('Informe o curso.')
+      .trim()
+      .min(1, 'Informe o curso.')
+      .max(100, 'O curso deve ter no máximo 100 caracteres.'),
+
+    disciplina: texto('Informe a disciplina.')
+      .trim()
+      .min(1, 'Informe a disciplina.')
+      .refine((v) => DISCIPLINAS.includes(v), `Disciplina inválida. Use: ${DISCIPLINAS.join(', ')}.`),
+
+    // Só vale para PIC e Outras. Nas APIExt o servidor define o formato e ignora este campo.
+    formato: z.string({ invalid_type_error: 'Formato inválido.' }).nullish(),
+  })
+  .superRefine((dados, ctx) => {
+    if (!DISCIPLINAS.includes(dados.disciplina)) return; // o erro de disciplina já foi reportado
+    if (FORMATO_AUTOMATICO[dados.disciplina]) return;
+
+    const formato = normalizarFormato(dados.formato);
+    if (!formato) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['formato'],
+        message: 'Escolha o formato do trabalho: banner ou comunicação oral.',
+      });
+    } else if (!FORMATOS.includes(formato)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['formato'],
+        message: 'Formato inválido. Use banner ou comunicação oral.',
+      });
+    }
+  })
+  .transform((dados) => ({
+    ...dados,
+    formato: FORMATO_AUTOMATICO[dados.disciplina] || normalizarFormato(dados.formato),
+  }));
 
 // Procura cadastros que já usam o CPF ou o e-mail. Retorna { cpf?, email? } ou null.
 async function verificarDuplicidade(cpf, email) {
@@ -95,6 +135,11 @@ function erroDeDuplicidade(campos) {
 router.post(
   '/',
   assincrono(async (req, res) => {
+    // Fora do período de inscrições (e sem "ignorar_datas"): 403, antes de qualquer outra coisa.
+    const config = await obterConfiguracao();
+    const fechada = motivoInscricoesFechadas(config);
+    if (fechada) throw proibido(fechada);
+
     const dados = inscricaoSchema.parse(req.body ?? {});
 
     // 1) Checagem amigável (diz exatamente qual campo já existe).
@@ -124,6 +169,8 @@ router.post(
         email: aluno.email,
         cpf: mascararCpf(aluno.cpf),
         curso: aluno.curso,
+        disciplina: aluno.disciplina,
+        formato: aluno.formato,
         criado_em: aluno.criado_em,
       },
     });

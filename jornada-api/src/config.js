@@ -42,5 +42,6 @@ module.exports = {
     geral: numero('RATE_LIMIT_GERAL', 600),
     login: numero('RATE_LIMIT_LOGIN', 10),
     inscricoes: numero('RATE_LIMIT_INSCRICOES', 30),
+    consulta: numero('RATE_LIMIT_CONSULTA', 10),
   },
 };

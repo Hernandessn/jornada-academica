@@ -7,7 +7,8 @@ function criarLimite({ max, mensagem, ...extra }) {
     limit: max,
     standardHeaders: true,
     legacyHeaders: false,
-    skip: () => config.ambiente === 'test', // os testes automatizados não esbarram no limite
+    // Nos testes o limite fica desligado, a menos que o teste defina TESTAR_LIMITES (ver tests/limites.test.js).
+    skip: () => config.ambiente === 'test' && !process.env.TESTAR_LIMITES,
     handler: (req, res) => res.status(429).json({ erro: mensagem }),
     ...extra,
   });
@@ -32,4 +33,11 @@ const limiteInscricoes = criarLimite({
   mensagem: 'Muitas tentativas de inscrição. Aguarde alguns minutos e tente novamente.',
 });
 
-module.exports = { limiteGeral, limiteLogin, limiteInscricoes };
+// Consulta pública de certificado (CPF + e-mail): forte, contra tentativa de varrer CPFs.
+// Conta todas as requisições (inclusive as de sucesso).
+const limiteConsulta = criarLimite({
+  max: config.limites.consulta,
+  mensagem: 'Muitas consultas. Aguarde alguns minutos e tente novamente.',
+});
+
+module.exports = { limiteGeral, limiteLogin, limiteInscricoes, limiteConsulta };

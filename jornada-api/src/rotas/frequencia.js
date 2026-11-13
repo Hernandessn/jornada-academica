@@ -77,7 +77,11 @@ router.get(
     const alunos = resumo.alunos.map((a) => ({ ...a, cpf: mascararCpf(a.cpf) }));
 
     res.json({
-      configuracao: resumo.configuracao,
+      // Só a regra de presença; as demais configurações são exclusivas do admin.
+      configuracao: {
+        modo_aprovacao: resumo.configuracao.modo_aprovacao,
+        valor_minimo: resumo.configuracao.valor_minimo,
+      },
       carga_horaria_total: resumo.carga_horaria_total,
       total_alunos: alunos.length,
       total_elegiveis: alunos.filter((a) => a.elegivel).length,
