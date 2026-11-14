@@ -7,6 +7,7 @@ const TEMPO_LIMITE_MS = 45000; // folga para o servidor gratuito "acordar"
 export class ApiError extends Error {
   constructor(status, mensagem, campos = {}) {
     super(mensagem);
+    this.mensagem = mensagem;
     this.status = status;
     this.campos = campos;
   }
@@ -44,7 +45,7 @@ async function requisicao(metodo, rota, corpo, { auth = false } = {}) {
   }
   if (resposta.ok) return dados;
   if (resposta.status === 401 && auth) {
-    // token expirado (usado a partir da etapa 5)
+    // token expirado: volta ao login com aviso
     sessionStorage.clear();
     location.href = "login.html?expirou=1";
   }
@@ -55,9 +56,31 @@ async function requisicao(metodo, rota, corpo, { auth = false } = {}) {
   throw new ApiError(resposta.status, mensagem, dados.campos || {});
 }
 
+// Públicas
 export const inscrever = (dados) =>
   requisicao("POST", "/api/inscricoes", dados);
 export const listarEventos = () => requisicao("GET", "/api/eventos");
+export const login = (email, senha) =>
+  requisicao("POST", "/api/auth/login", { email, senha });
 // Ping silencioso: acorda o servidor em planos gratuitos que hibernam.
 export const acordarServidor = () =>
   fetch(`${API_URL}/api/saude`, { mode: "no-cors" }).catch(() => {});
+
+// Protegidas (professor/admin)
+export function listarAlunos(eventoId, busca) {
+  const p = new URLSearchParams();
+  if (eventoId) p.set("evento_id", eventoId);
+  if (busca) p.set("busca", busca);
+  return requisicao("GET", `/api/alunos?${p}`, null, { auth: true });
+}
+
+export const registrarPresenca = (alunoId, eventoId) =>
+  requisicao(
+    "POST",
+    "/api/frequencia",
+    { aluno_id: alunoId, evento_id: eventoId },
+    { auth: true },
+  );
+
+export const resumoFrequencia = () =>
+  requisicao("GET", "/api/frequencia/resumo", null, { auth: true });
