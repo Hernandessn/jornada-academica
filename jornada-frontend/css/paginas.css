@@ -594,3 +594,130 @@ section[aria-label="Pilares da Jornada"] {
     min-height: 2.75rem;
   }
 }
+
+/* ===== Blocos de conteúdo: doação, programação e cronograma ===== */
+.bloco {
+  padding-top: 3rem;
+  padding-bottom: 0.5rem;
+}
+.bloco:last-of-type {
+  padding-bottom: 3rem;
+}
+.bloco h2 {
+  margin-bottom: 1.25rem;
+}
+.bloco h2::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 4px;
+  margin-top: 0.6rem;
+  background: var(--amarelo);
+  border-radius: 2px;
+}
+.doacao-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--amarelo);
+  border: 0;
+  color: var(--azul-marinho);
+}
+.doacao-card i {
+  font-size: 2rem;
+}
+.doacao-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+}
+.doacao-card h2::after {
+  display: none;
+}
+.doacao-card p {
+  margin: 0;
+}
+.agenda,
+.cronograma {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.agenda li,
+.cronograma li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--borda);
+}
+.agenda li:first-child {
+  border-top: 0;
+}
+.agenda strong {
+  flex: none;
+  width: 7.5rem;
+  color: var(--azul-royal);
+}
+.cronograma {
+  padding: 0.5rem 1.5rem;
+}
+.cronograma strong {
+  flex: none;
+  width: 8.5rem;
+  color: var(--azul-royal);
+}
+@media (min-width: 992px) {
+  .passos {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== Ajustes após revisão dos prints ===== */
+/* Menu: nada quebra em duas linhas */
+.jr-navbar .nav-link,
+.jr-navbar .jr-btn {
+  white-space: nowrap;
+}
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .jr-navbar .navbar-brand {
+    padding: 0.3rem 0.5rem;
+    margin-right: 0.25rem;
+  }
+  .jr-navbar img {
+    height: 1.9rem;
+  }
+  .jr-navbar .jr-sep {
+    margin: 0 0.4rem;
+  }
+  .jr-navbar .navbar-nav {
+    gap: 0 !important;
+  }
+  .jr-navbar .nav-link {
+    font-size: 0.875rem;
+    padding-inline: 0.45rem;
+  }
+  .jr-navbar .jr-btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.9rem;
+  }
+}
+
+/* Cronograma: sem linha sobrando no topo */
+.cronograma li:first-child {
+  border-top: 0;
+}
+
+/* Programação e cronograma: horário mais largo no desktop e empilhado no celular e no tablet */
+.agenda strong {
+  width: 9.5rem;
+}
+@media (max-width: 991.98px) {
+  .agenda li,
+  .cronograma li {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .agenda strong,
+  .cronograma strong {
+    width: auto;
+  }
+}
