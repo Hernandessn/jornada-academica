@@ -24,7 +24,7 @@ export function montarLayout({ ativo = "" } = {}) {
       <div class="collapse navbar-collapse" id="menu-nav"><ul class="navbar-nav ms-auto align-items-xl-center gap-xl-2">
         ${itens}
         <li><a class="nav-link ${ativo === "entrar" ? "ativo" : ""}" href="login.html"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Entrar</a></li>
-        <li class="mt-2 mt-xl-0"><a class="jr-btn jr-btn-cta" href="inscricao.html"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i>Inscrever meu trabalho</a></li>
+        
       </ul></div></div></nav>`;
   }
   if (rod) {
