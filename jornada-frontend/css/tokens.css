@@ -1,25 +1,87 @@
 /* Tokens do design system. Valores medidos nas logos/faixas; entre parênteses, o valor do briefing. */
-:root{
-  --azul-marinho:#011C63;   /* (#0B1F5C) títulos, cabeçalho de áreas azuis, rodapé, menu lateral */
-  --azul-royal:#0040CE;     /* (#1F4FB8) botão primário, links, foco */
-  --amarelo:#FFCB0C;        /* (#F5C518) CTA e detalhes */
-  --vermelho:#E40822;       /* (#E3202D) só erros/alertas; para TEXTO use --vermelho-texto */
-  --vermelho-texto:#C81D28; /* contraste AA sobre branco e sobre --fundo */
-  --verde-sucesso:#1E8E4E; --fundo-sucesso:#E8F6EE;
-  --verde-texto:#166B3B;    /* contraste AA sobre --fundo-sucesso */
-  --fundo:#F4F6FB; --branco:#FFFFFF; --texto:#1A1F36; --texto-suave:#5B6480; --borda:#D5DBEA;
-  --pendente-fundo:#E3E8F4; --pendente-texto:#3F4A6B;
-  --raio:.75rem; --sombra:0 2px 10px rgba(1,28,99,.08);
-  --fonte-titulo:'Montserrat',system-ui,sans-serif; --fonte-corpo:'Inter',system-ui,sans-serif;
+:root {
+  --azul-marinho: #011c63; /* (#0B1F5C) títulos, cabeçalho de áreas azuis, rodapé, menu lateral */
+  --azul-royal: #0040ce; /* (#1F4FB8) botão primário, links, foco */
+  --amarelo: #ffcb0c; /* (#F5C518) CTA e detalhes */
+  --vermelho: #e40822; /* (#E3202D) só erros/alertas; para TEXTO use --vermelho-texto */
+  --vermelho-texto: #c81d28; /* contraste AA sobre branco e sobre --fundo */
+  --verde-sucesso: #1e8e4e;
+  --fundo-sucesso: #e8f6ee;
+  --verde-texto: #166b3b; /* contraste AA sobre --fundo-sucesso */
+  --fundo: #f4f6fb;
+  --branco: #ffffff;
+  --texto: #1a1f36;
+  --texto-suave: #5b6480;
+  --borda: #d5dbea;
+  --pendente-fundo: #e3e8f4;
+  --pendente-texto: #3f4a6b;
+  --raio: 0.75rem;
+  --sombra: 0 2px 10px rgba(1, 28, 99, 0.08);
+  --fonte-titulo: "Montserrat", system-ui, sans-serif;
+  --fonte-corpo: "Inter", system-ui, sans-serif;
 }
-html{scroll-behavior:smooth}
-body{font-family:var(--fonte-corpo);font-weight:400;color:var(--texto);background:var(--fundo);font-size:1rem;line-height:1.6;margin:0}
-h1,h2,h3,h4,h5,h6{font-family:var(--fonte-titulo);font-weight:700;color:var(--azul-marinho);line-height:1.2}
-h1{font-size:clamp(1.75rem,6vw,2.75rem);font-weight:800}
-h2{font-size:clamp(1.4rem,4.5vw,2rem);font-weight:800}
-h3{font-size:1.25rem} h4{font-size:1.1rem} h5{font-size:1rem} h6{font-size:.9rem}
-.legenda{font-size:.8125rem;color:var(--texto-suave)}
-strong,.fw-600{font-weight:600}
-a{color:var(--azul-royal)}
-:focus-visible{outline:3px solid var(--azul-royal);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--fonte-corpo);
+  font-weight: 400;
+  color: var(--texto);
+  background: var(--fundo);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  color: var(--azul-marinho);
+  line-height: 1.2;
+}
+h1 {
+  font-size: clamp(1.75rem, 6vw, 2.75rem);
+  font-weight: 800;
+}
+h2 {
+  font-size: clamp(1.4rem, 4.5vw, 2rem);
+  font-weight: 800;
+}
+h3 {
+  font-size: 1.25rem;
+}
+h4 {
+  font-size: 1.1rem;
+}
+h5 {
+  font-size: 1rem;
+}
+h6 {
+  font-size: 0.9rem;
+}
+.legenda {
+  font-size: 0.8125rem;
+  color: var(--texto-suave);
+}
+strong,
+.fw-600 {
+  font-weight: 600;
+}
+a {
+  color: var(--azul-royal);
+}
+:focus-visible {
+  outline: 3px solid var(--azul-royal);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
