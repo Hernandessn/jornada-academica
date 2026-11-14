@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Inscrever meu trabalho | VI Jornada Acadêmica da Uninassau Teresina
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link href="css/tokens.css" rel="stylesheet" />
+    <link href="css/components.css" rel="stylesheet" />
+    <link href="css/paginas.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header id="app-navbar"></header>
+    <main class="container insc">
+      <div class="jr-card insc-card">
+        <div id="painel-form">
+          <h1 class="h2">Inscrever meu trabalho</h1>
+          <p class="legenda">
+            Preencha os dados abaixo. Todos os campos são obrigatórios.
+          </p>
+          <div
+            id="alerta-geral"
+            class="jr-alerta jr-alerta-erro mb-3"
+            role="alert"
+            hidden
+          ></div>
+          <div
+            id="alerta-espera"
+            class="jr-alerta jr-alerta-info mb-3"
+            role="status"
+            hidden
+          >
+            O servidor está iniciando, isso pode levar alguns segundos. Aguarde…
+          </div>
+          <form id="form-inscricao" novalidate>
+            <div class="jr-campo">
+              <label for="nome">Nome completo</label>
+              <input
+                class="jr-input"
+                id="nome"
+                type="text"
+                autocomplete="name"
+                maxlength="150"
+                aria-describedby="erro-nome"
+                required
+              />
+              <p class="jr-msg-erro" id="erro-nome" hidden></p>
+            </div>
+            <div class="row">
+              <div class="col-md-6 jr-campo">
+                <label for="email">E-mail</label>
+                <input
+                  class="jr-input"
+                  id="email"
+                  type="email"
+                  autocomplete="email"
+                  aria-describedby="erro-email"
+                  required
+                />
+                <p class="jr-msg-erro" id="erro-email" hidden></p>
+              </div>
+              <div class="col-md-6 jr-campo">
+                <label for="telefone">Telefone</label>
+                <input
+                  class="jr-input"
+                  id="telefone"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="tel-national"
+                  placeholder="(99) 99999-9999"
+                  aria-describedby="erro-telefone"
+                  required
+                />
+                <p class="jr-msg-erro" id="erro-telefone" hidden></p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 jr-campo">
+                <label for="cpf">CPF</label>
+                <input
+                  class="jr-input"
+                  id="cpf"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="000.000.000-00"
+                  aria-describedby="erro-cpf"
+                  required
+                />
+                <p class="jr-msg-erro" id="erro-cpf" hidden></p>
+              </div>
+              <div class="col-md-6 jr-campo">
+                <label for="matricula">Matrícula</label>
+                <input
+                  class="jr-input"
+                  id="matricula"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  aria-describedby="erro-matricula"
+                  required
+                />
+                <p class="jr-msg-erro" id="erro-matricula" hidden></p>
+              </div>
+            </div>
+            <div class="jr-campo">
+              <label for="curso">Curso</label>
+              <select
+                class="jr-input"
+                id="curso"
+                aria-describedby="erro-curso"
+                required
+              >
+                <option value="">Selecione seu curso</option>
+              </select>
+              <p class="jr-msg-erro" id="erro-curso" hidden></p>
+            </div>
+            <div class="row">
+              <div class="col-md-6 jr-campo">
+                <label for="disciplina">Disciplina</label>
+                <select
+                  class="jr-input"
+                  id="disciplina"
+                  aria-describedby="erro-disciplina"
+                  required
+                >
+                  <option value="">Selecione a disciplina</option>
+                </select>
+                <p class="jr-msg-erro" id="erro-disciplina" hidden></p>
+              </div>
+              <div class="col-md-6 jr-campo">
+                <label for="formato">Formato da apresentação</label>
+                <select
+                  class="jr-input"
+                  id="formato"
+                  aria-describedby="erro-formato ajuda-formato"
+                  required
+                >
+                  <option value="">Selecione o formato</option>
+                </select>
+                <p class="legenda mb-0" id="ajuda-formato"></p>
+                <p class="jr-msg-erro" id="erro-formato" hidden></p>
+              </div>
+            </div>
+            <div class="jr-alerta jr-alerta-info mb-2">
+              <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+              <span
+                >Usaremos seus dados somente para a inscrição, o controle de
+                presença e a emissão do certificado da VI Jornada
+                Acadêmica.</span
+              >
+            </div>
+            <div class="jr-campo form-check lgpd">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="aceite"
+                aria-describedby="erro-aceite"
+              />
+              <label class="form-check-label" for="aceite"
+                >Li e concordo com o uso dos meus dados para essa
+                finalidade.</label
+              >
+              <p class="jr-msg-erro" id="erro-aceite" hidden></p>
+            </div>
+            <button
+              class="jr-btn jr-btn-cta jr-btn-bloco"
+              id="botao-enviar"
+              type="submit"
+            >
+              <span
+                class="spinner-border"
+                role="status"
+                aria-hidden="true"
+                hidden
+              ></span
+              ><span id="texto-botao">Confirmar inscrição</span>
+            </button>
+            <p class="text-center mt-3 mb-0">
+              <a href="index.html"
+                ><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para
+                a página inicial</a
+              >
+            </p>
+          </form>
+        </div>
+        <div id="painel-sucesso" hidden tabindex="-1">
+          <div class="jr-alerta jr-alerta-sucesso mb-3" role="status">
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i
+            ><span id="msg-sucesso"></span>
+          </div>
+          <p id="linha-formato">
+            Formato de apresentação: <strong id="formato-sucesso"></strong>
+          </p>
+          <div class="jr-alerta jr-alerta-info mb-3">
+            <i class="bi bi-basket2-fill" aria-hidden="true"></i>
+            <span
+              >Leve <strong>1 kg de alimento não perecível</strong>. Ele será
+              recebido no credenciamento e doado a uma instituição de trabalho
+              social.</span
+            >
+          </div>
+          <p>
+            A Jornada acontece em <strong id="datas-sucesso"></strong>. Os dias
+            e horários das apresentações serão divulgados em 05/12/2026, nas
+            redes sociais do evento.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="jr-btn jr-btn-primario" href="index.html"
+              >Voltar ao início</a
+            >
+            <button
+              class="jr-btn jr-btn-contorno"
+              id="nova-inscricao"
+              type="button"
+            >
+              Nova inscrição
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div id="app-rodape"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/inscricao.js"></script>
+  </body>
+</html>
