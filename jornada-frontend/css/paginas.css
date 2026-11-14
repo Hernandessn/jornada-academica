@@ -721,3 +721,76 @@ section[aria-label="Pilares da Jornada"] {
     width: auto;
   }
 }
+
+/* ===== Login e painel do professor ===== */
+.login-card {
+  max-width: 26rem;
+  margin: 2rem auto 4rem;
+}
+.topo-painel {
+  background: var(--azul-marinho);
+  color: #fff;
+  padding: 0.75rem 0;
+  border-bottom: 4px solid var(--amarelo);
+}
+.topo-painel strong {
+  font: 800 1.1rem var(--fonte-titulo);
+}
+.legenda-topo {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+.jr-btn-contorno-claro {
+  background: transparent;
+  color: #fff;
+  border-color: #fff;
+}
+.jr-btn-contorno-claro:hover {
+  background: #fff;
+  color: var(--azul-marinho);
+}
+.resumo {
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 768px) {
+  .resumo {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.resumo .jr-card {
+  border-top: 4px solid var(--azul-royal);
+}
+.resumo strong {
+  display: block;
+  font: 800 1.75rem var(--fonte-titulo);
+  color: var(--azul-marinho);
+}
+.resumo #regra {
+  font-size: 1.05rem;
+  line-height: 1.35;
+  padding-top: 0.4rem;
+}
+.jr-check {
+  width: 1.4rem;
+  height: 1.4rem;
+  accent-color: var(--azul-royal);
+}
+.barra-acao {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-top: 1px solid var(--borda);
+  box-shadow: 0 -4px 12px rgba(1, 28, 99, 0.1);
+}
+
+/* Painel do professor: avisos acima da barra "Registrar presença" */
+body.painel .jr-toasts {
+  bottom: 6rem;
+}
