@@ -84,3 +84,6 @@ export const registrarPresenca = (alunoId, eventoId) =>
 
 export const resumoFrequencia = () =>
   requisicao("GET", "/api/frequencia/resumo", null, { auth: true });
+
+export const consultarCertificado = (cpf, email) =>
+  requisicao("POST", "/api/certificados/consulta", { cpf, email });
