@@ -794,3 +794,22 @@ section[aria-label="Pilares da Jornada"] {
 body.painel .jr-toasts {
   bottom: 6rem;
 }
+
+/* Programação e cronograma em azul */
+#programacao .jr-card,
+#cronograma .jr-card {
+  background: var(--azul-royal);
+  border: 0;
+  color: #fff;
+}
+#programacao .jr-card h3 {
+  color: #fff;
+}
+#programacao .agenda li,
+#cronograma .cronograma li {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+#programacao .agenda strong,
+#cronograma .cronograma strong {
+  color: var(--amarelo);
+}
