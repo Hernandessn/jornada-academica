@@ -116,3 +116,481 @@
   width: 1.25rem;
   height: 1.25rem;
 }
+
+/* ===== Redesign: menos branco, faixas de cor da marca ===== */
+:root {
+  --fundo: #e6ecf9;
+}
+.jr-btn {
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.15s;
+}
+.jr-btn:hover {
+  transform: translateY(-2px);
+}
+.jr-btn:active {
+  transform: translateY(1px);
+}
+.jr-card {
+  box-shadow: 0 4px 16px rgba(1, 28, 99, 0.1);
+}
+.pilar {
+  border-top: 4px solid var(--amarelo);
+}
+
+/* Hero: faixa azul-marinho da marca */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--azul-marinho);
+  padding: 2rem 0 4rem;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(70vw, 380px);
+  aspect-ratio: 866 / 288;
+  background: url("../assets/faixas-vetoriais.png") left bottom / contain
+    no-repeat;
+  pointer-events: none;
+}
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+.hero h1 {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  background: #fff;
+  border-radius: var(--raio);
+  padding: 0.75rem 1rem;
+}
+.hero h1 img {
+  width: 22rem;
+  max-width: 100%;
+  height: auto;
+}
+.hero-instituicao,
+.hero-info li {
+  color: #fff;
+}
+.hero-lema,
+.hero-info i {
+  color: var(--amarelo);
+}
+.hero-foto {
+  box-shadow: 8px 8px 0 var(--amarelo);
+}
+@media (min-width: 992px) {
+  .hero {
+    padding: 3rem 0 5rem;
+  }
+  .hero-foto {
+    box-shadow: 14px 14px 0 var(--amarelo);
+  }
+}
+
+/* Sobre: cartão com blocos de cor */
+.sobre {
+  width: calc(100% - 1.5rem);
+  margin: 1.5rem auto 3rem;
+  padding: 1.75rem 1.25rem 2rem;
+  background: #fff;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+}
+@media (min-width: 768px) {
+  .sobre {
+    padding: 2.5rem;
+  }
+}
+.sobre-destaque {
+  background: var(--amarelo);
+  color: var(--azul-marinho);
+  border-left: 0;
+  border-radius: var(--raio);
+  padding: 1rem 1.25rem;
+}
+.passos {
+  background: var(--azul-royal);
+  color: #fff;
+  border-radius: var(--raio);
+  padding: 1.25rem 1.25rem 1.25rem 2.75rem;
+}
+
+/* Inscrição: faixa azul-marinho atrás do topo do formulário */
+body:has(.insc) {
+  background: linear-gradient(var(--azul-marinho) 0 13rem, var(--fundo) 13rem);
+}
+.insc {
+  padding-top: 2.5rem;
+}
+.insc-card {
+  border: 0;
+  border-top: 5px solid var(--amarelo);
+  box-shadow: 0 8px 28px rgba(1, 28, 99, 0.2);
+}
+
+/* ===== Acabamento profissional + margens maiores no celular ===== */
+:root {
+  --raio: 0.5rem;
+}
+.container,
+.container-fluid {
+  --bs-gutter-x: 2.5rem;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.65;
+}
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+.jr-navbar {
+  box-shadow: 0 2px 10px rgba(1, 28, 99, 0.08);
+}
+.jr-navbar .nav-link {
+  font-size: 0.95rem;
+}
+.jr-rodape {
+  border-top: 4px solid var(--amarelo);
+}
+.jr-btn {
+  letter-spacing: 0.01em;
+}
+.jr-card {
+  padding: 1.5rem;
+  border-color: #cfd8ee;
+  box-shadow: 0 2px 12px rgba(1, 28, 99, 0.08);
+}
+.jr-input {
+  min-height: 3rem;
+}
+.jr-campo label {
+  font-size: 0.9375rem;
+}
+
+/* Títulos de seção com filete amarelo */
+.sobre h2::after,
+.insc-card h1::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 4px;
+  margin-top: 0.6rem;
+  background: var(--amarelo);
+  border-radius: 2px;
+}
+
+/* Hero */
+.hero {
+  padding: 2.5rem 0 4.5rem;
+}
+.hero h1 {
+  padding: 0.9rem 1.25rem;
+}
+.hero-instituicao {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.hero-lema {
+  font-size: clamp(1.25rem, 5vw, 1.65rem);
+  margin-bottom: 1.5rem;
+}
+.hero-info {
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.hero .jr-btn {
+  min-height: 3.25rem;
+  padding-inline: 1.75rem;
+  font-size: 1.05rem;
+}
+@media (min-width: 992px) {
+  .hero {
+    padding: 4rem 0 6rem;
+  }
+}
+
+/* Sobre */
+.sobre {
+  width: calc(100% - 2.5rem);
+  padding: 2rem 1.5rem 2.25rem;
+}
+@media (min-width: 768px) {
+  .sobre {
+    padding: 3rem;
+  }
+}
+.sobre-texto p {
+  font-size: 1.0625rem;
+}
+
+/* Inscrição */
+.insc {
+  padding-bottom: 4rem;
+}
+.insc-card {
+  padding: 1.75rem 1.5rem;
+}
+@media (min-width: 768px) {
+  .insc-card {
+    padding: 2.5rem;
+  }
+}
+
+/* ===== Estilo do mockup: hero com foto, faixa azul e passos ===== */
+section[aria-label="Pilares da Jornada"] {
+  display: none; /* eixos removidos conforme o documento de alterações */
+}
+
+/* Hero: foto na base com degradê, texto em azul-marinho */
+.hero {
+  background: #fff;
+  padding: 2.5rem 0 min(64vw, 24rem);
+}
+.hero .container {
+  position: static;
+  z-index: auto;
+}
+.hero .row > .col-lg-6:first-child {
+  position: relative;
+  z-index: 2;
+}
+.hero h1 {
+  display: block;
+  width: auto;
+  background: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+.hero h1 img {
+  width: min(100%, 20rem);
+}
+.hero-instituicao,
+.hero-info li {
+  color: var(--azul-marinho);
+}
+.hero-lema,
+.hero-info i {
+  color: var(--azul-royal);
+}
+.hero-foto {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: min(66.7vw, 25rem);
+  aspect-ratio: auto;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+}
+.hero::after {
+  z-index: 1;
+  width: min(55vw, 320px);
+}
+@media (min-width: 992px) {
+  .hero {
+    padding: 4rem 0 6rem;
+    min-height: 34rem;
+  }
+  .hero-foto {
+    left: auto;
+    right: 0;
+    top: 0;
+    width: 58%;
+    height: 100%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 35%);
+    mask-image: linear-gradient(to right, transparent 0, #000 35%);
+  }
+}
+
+/* Sobre: faixa azul-marinho de ponta a ponta */
+.sobre {
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 0;
+  background: var(--azul-marinho);
+  box-shadow: 0 0 0 100vmax var(--azul-marinho);
+  clip-path: inset(0 -100vmax);
+  padding: 3rem 1.5rem;
+}
+@media (min-width: 768px) {
+  .sobre {
+    padding: 4rem 1.5rem;
+  }
+}
+.sobre h2,
+.sobre h3,
+.sobre-texto p {
+  color: #fff;
+}
+.sobre h3 {
+  margin-top: 2.5rem;
+}
+.sobre-destaque {
+  background: none;
+  color: #fff;
+  border-left: 4px solid var(--amarelo);
+  border-radius: 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  font-size: 1.25rem;
+}
+
+/* Passos com círculo amarelo numerado */
+.passos {
+  list-style: none;
+  counter-reset: passo;
+  display: grid;
+  gap: 1.25rem;
+  padding: 0;
+  background: none;
+  color: #fff;
+  max-width: none;
+}
+@media (min-width: 768px) {
+  .passos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.passos li {
+  counter-increment: passo;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin: 0;
+}
+.passos li::before {
+  content: counter(passo);
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--amarelo);
+  color: var(--azul-marinho);
+  font: 800 1rem/2rem var(--fonte-titulo);
+  text-align: center;
+}
+.sobre .jr-btn-primario {
+  background: var(--amarelo);
+  color: var(--azul-marinho);
+}
+.sobre .jr-btn-primario:hover {
+  background: #e8b800;
+}
+
+/* ===== Rodapé claro: logos originais, sem placa branca ===== */
+.jr-rodape {
+  background: #dce6f8;
+  color: var(--azul-marinho);
+  border-top: 4px solid var(--amarelo);
+}
+.jr-rodape a,
+.jr-rodape .jr-lema,
+.jr-rodape .jr-contato {
+  color: var(--azul-marinho);
+}
+.jr-rodape .jr-placa {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ===== Header azul + tamanhos menores no celular ===== */
+.jr-navbar {
+  background: var(--azul-marinho);
+}
+.jr-navbar .navbar-brand {
+  background: #fff;
+  border-radius: var(--raio);
+  padding: 0.35rem 0.75rem;
+  margin-right: 0.5rem;
+}
+.jr-navbar .nav-link {
+  color: #fff;
+}
+.jr-navbar .nav-link:hover {
+  color: var(--amarelo);
+}
+.jr-navbar .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.6);
+  padding: 0.35rem 0.6rem;
+}
+.jr-navbar .navbar-toggler-icon {
+  filter: invert(1);
+}
+.jr-navbar :focus-visible {
+  outline-color: var(--amarelo);
+}
+@media (min-width: 992px) {
+  .jr-navbar img {
+    height: 2.25rem;
+  }
+}
+@media (max-width: 575.98px) {
+  html {
+    font-size: 15px;
+  }
+  .jr-navbar .navbar-brand {
+    padding: 0.25rem 0.5rem;
+  }
+  .jr-navbar img {
+    height: 1.5rem;
+  }
+  .jr-navbar .navbar-collapse {
+    padding-bottom: 0.75rem;
+  }
+  .jr-btn {
+    font-size: 0.95rem;
+    padding: 0.5rem 1.1rem;
+  }
+  .hero {
+    padding-top: 1.75rem;
+  }
+  .hero h1 img {
+    width: min(100%, 15rem);
+  }
+  .hero-lema {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  .hero-info {
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .hero-info li {
+    font-size: 0.9rem;
+  }
+  .hero .jr-btn {
+    min-height: 3rem;
+    font-size: 0.95rem;
+    padding-inline: 1.25rem;
+  }
+  .sobre {
+    padding: 2.25rem 1.25rem;
+  }
+  .sobre-destaque {
+    font-size: 1.1rem;
+  }
+  .sobre-texto p {
+    font-size: 1rem;
+  }
+  .jr-card,
+  .insc-card {
+    padding: 1.25rem;
+  }
+  .jr-input {
+    min-height: 2.75rem;
+  }
+}
