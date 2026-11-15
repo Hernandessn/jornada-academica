@@ -2,6 +2,7 @@
 // valores são reduzidos ANTES de carregar a aplicação (a configuração é lida na importação).
 process.env.TESTAR_LIMITES = '1';
 process.env.RATE_LIMIT_CONSULTA = '3';
+process.env.RATE_LIMIT_DOWNLOAD = '3';
 process.env.RATE_LIMIT_LOGIN = '2';
 
 const request = require('supertest');
@@ -17,6 +18,7 @@ beforeAll(async () => {
 afterAll(async () => {
   delete process.env.TESTAR_LIMITES;
   delete process.env.RATE_LIMIT_CONSULTA;
+  delete process.env.RATE_LIMIT_DOWNLOAD;
   delete process.env.RATE_LIMIT_LOGIN;
   await db.destroy();
 });
@@ -34,6 +36,20 @@ describe('Rate limit', () => {
     const bloqueada = await consultar();
     expect(bloqueada.status).toBe(429);
     expect(bloqueada.body.erro).toMatch(/muitas consultas/i);
+  });
+
+  test('download do certificado: contador próprio (a consulta não gasta o limite do download)', async () => {
+    const baixar = () =>
+      request(app)
+        .post('/api/certificados/baixar')
+        .send({ cpf: CPF_3, email: 'ninguem@exemplo.com' });
+
+    for (let i = 0; i < 3; i += 1) {
+      expect((await baixar()).status).toBe(404);
+    }
+    const bloqueada = await baixar();
+    expect(bloqueada.status).toBe(429);
+    expect(bloqueada.body.erro).toMatch(/muitos downloads/i);
   });
 
   test('login: após 2 tentativas erradas a 3ª recebe 429', async () => {
