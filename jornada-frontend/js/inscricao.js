@@ -23,6 +23,7 @@ const CAMPOS = [
   "cpf",
   "matricula",
   "curso",
+  "instituicao",
   "disciplina",
   "formato",
   "aceite",
@@ -89,7 +90,7 @@ function limparErros() {
   });
 }
 function mostrarErro(campo, msg) {
-  if (!$(campo)) return;
+  if (!$(campo) || !$(`erro-${campo}`)) return;
   $(campo).classList.add("is-erro");
   $(campo).setAttribute("aria-invalid", "true");
   $(`erro-${campo}`).textContent = msg;
@@ -124,6 +125,7 @@ form.addEventListener("submit", async (ev) => {
     cpf: $("cpf").value,
     matricula: $("matricula").value,
     curso: $("curso").value,
+    instituicao: $("instituicao").value,
     disciplina: $("disciplina").value,
     formato: $("formato").value,
     aceite: $("aceite").checked,
@@ -141,10 +143,13 @@ form.addEventListener("submit", async (ev) => {
       email: valores.email.trim(),
       telefone: apenasDigitos(valores.telefone),
       cpf: apenasDigitos(valores.cpf),
-      matricula: apenasDigitos(valores.matricula),
       curso: valores.curso,
       disciplina: valores.disciplina,
     };
+    const matricula = apenasDigitos(valores.matricula);
+    if (matricula) dados.matricula = matricula; // opcional para participantes externos
+    const instituicao = valores.instituicao.trim();
+    if (instituicao) dados.instituicao = instituicao;
     if (!FORMATO_AUTO[valores.disciplina]) dados.formato = valores.formato; // nas APIExt o servidor define o formato
     const { aluno } = await inscrever(dados);
     $("msg-sucesso").textContent =

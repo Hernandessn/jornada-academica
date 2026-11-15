@@ -34,9 +34,9 @@ export function validarInscricao(v) {
   if (!v.cpf.trim()) e.cpf = "Informe seu CPF.";
   else if (/[A-Za-z]/.test(v.cpf) || !cpfValido(v.cpf)) e.cpf = "CPF inválido.";
 
+  // Matrícula opcional (participantes externos). Se informada, de 4 a 20 dígitos.
   const mat = apenasDigitos(v.matricula);
-  if (!mat) e.matricula = "Informe sua matrícula.";
-  else if (mat.length < 4)
+  if (mat && mat.length < 4)
     e.matricula = "A matrícula deve ter de 4 a 20 dígitos.";
 
   if (!v.curso) e.curso = "Selecione seu curso.";

@@ -31,7 +31,7 @@
         <div id="painel-form">
           <h1 class="h2">Inscrever meu trabalho</h1>
           <p class="legenda">
-            Preencha os dados abaixo. Todos os campos são obrigatórios.
+            Preencha os dados abaixo. Os campos sem “opcional” são obrigatórios.
           </p>
           <div
             id="alerta-geral"
@@ -105,30 +105,51 @@
                 <p class="jr-msg-erro" id="erro-cpf" hidden></p>
               </div>
               <div class="col-md-6 jr-campo">
-                <label for="matricula">Matrícula</label>
+                <label for="matricula">Matrícula (opcional)</label>
                 <input
                   class="jr-input"
                   id="matricula"
                   type="text"
                   inputmode="numeric"
                   autocomplete="off"
-                  aria-describedby="erro-matricula"
-                  required
+                  aria-describedby="ajuda-matricula erro-matricula"
                 />
+                <p class="legenda mb-0" id="ajuda-matricula">
+                  Deixe em branco se você não é aluno da Uninassau.
+                </p>
                 <p class="jr-msg-erro" id="erro-matricula" hidden></p>
               </div>
             </div>
-            <div class="jr-campo">
-              <label for="curso">Curso</label>
-              <select
-                class="jr-input"
-                id="curso"
-                aria-describedby="erro-curso"
-                required
-              >
-                <option value="">Selecione seu curso</option>
-              </select>
-              <p class="jr-msg-erro" id="erro-curso" hidden></p>
+            <div class="row">
+              <div class="col-md-6 jr-campo">
+                <label for="curso">Curso</label>
+                <select
+                  class="jr-input"
+                  id="curso"
+                  aria-describedby="erro-curso"
+                  required
+                >
+                  <option value="">Selecione seu curso</option>
+                </select>
+                <p class="jr-msg-erro" id="erro-curso" hidden></p>
+              </div>
+              <div class="col-md-6 jr-campo">
+                <label for="instituicao"
+                  >Instituição de origem (opcional)</label
+                >
+                <input
+                  class="jr-input"
+                  id="instituicao"
+                  type="text"
+                  maxlength="150"
+                  autocomplete="organization"
+                  aria-describedby="ajuda-instituicao erro-instituicao"
+                />
+                <p class="legenda mb-0" id="ajuda-instituicao">
+                  Para participantes de fora da Uninassau.
+                </p>
+                <p class="jr-msg-erro" id="erro-instituicao" hidden></p>
+              </div>
             </div>
             <div class="row">
               <div class="col-md-6 jr-campo">
