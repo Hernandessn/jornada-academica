@@ -59,7 +59,10 @@ Os valores vêm de `SEED_*` no `.env`. **Em produção o seed se recusa a rodar 
 | `SQLITE_FILE` | Arquivo do SQLite em desenvolvimento | `./dev.sqlite3` |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_SENHA` | Admin criado pelo seed | ver `.env.example` |
 | `SEED_PROFESSOR_EMAIL` / `SEED_PROFESSOR_SENHA` | Professor criado pelo seed | ver `.env.example` |
-| `RATE_LIMIT_GERAL` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_INSCRICOES` / `RATE_LIMIT_CONSULTA` | Requisições por IP a cada 15 min | `600` / `10` / `30` / `10` |
+| `RATE_LIMIT_GERAL` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_INSCRICOES` / `RATE_LIMIT_CONSULTA` / `RATE_LIMIT_DOWNLOAD` | Requisições por IP a cada 15 min | `600` / `10` / `30` / `10` / `10` |
+| `RESEND_API_KEY` | Chave do Resend (envio de e-mail por API HTTPS). Se definida, é o modo usado | vazio |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Envio por SMTP (Gmail, Brevo, Mailtrap...). Sem `SMTP_HOST` e fora de produção, usa o Ethereal (caixa de teste) | vazio / `587` |
+| `EMAIL_FROM` | Remetente dos certificados, ex.: `Jornada Acadêmica <certificados@seudominio.com>`. **Obrigatório em produção** | vazio |
 
 Gerar um `JWT_SECRET` forte:
 
@@ -77,6 +80,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 | `npm run seed` | Cria usuários, sessões e configuração padrão (pode repetir sem duplicar) |
 | `npm run db:setup` | `migrate` + `seed` |
 | `npm run db:reset` | **Apaga tudo** e recria (só desenvolvimento) |
+| `npm run certificado:exemplo` | Gera 3 PDFs de exemplo (nome curto, longo e com acentos) em `tmp/` para conferir o layout |
 | `npm test` | Testes automatizados |
 
 ### Mudar datas, horários e carga horária das sessões
@@ -101,7 +105,8 @@ npm test
 |---|---|
 | `tests/api.test.js` | Formulário vazio, CPF com letras, CPF inválido, CPF e e-mail duplicados (inclusive simultâneos), presença duplicada, acesso sem login (401), papel errado (403), resumo de presença e troca da regra (horas ↔ percentual) |
 | `tests/requisitos.test.js` | Disciplina obrigatória, formato automático, período de inscrições, configurações novas, consulta de certificado (inclusive CPF com e-mail incorreto) |
-| `tests/limites.test.js` | Rate limit da consulta e do login |
+| `tests/certificados.test.js` | Emissão (acesso, só elegíveis, não reenviar, falha isolada, simular, trava), geração do PDF, download público |
+| `tests/limites.test.js` | Rate limit da consulta, do download e do login |
 | `tests/utils.test.js` | Funções puras: CPF, elegibilidade, datas, disciplinas |
 
 ## 5. Formato de erro
@@ -118,8 +123,9 @@ Todo erro sai em JSON padronizado:
 | 401 | Sem token, token inválido/expirado ou login incorreto |
 | 403 | Papel sem permissão, ou inscrições fora do período |
 | 404 | Aluno, evento ou rota inexistente |
-| 409 | CPF ou e-mail já cadastrado (`campos` diz qual) |
+| 409 | CPF ou e-mail já cadastrado (`campos` diz qual), ou emissão de certificados já em andamento |
 | 429 | Limite de requisições por IP excedido |
+| 503 | E-mail não configurado (só na emissão de certificados) |
 
 ## 6. Rotas, com exemplos `curl`
 
@@ -343,6 +349,54 @@ Privacidade:
 - CPF ou e-mail mal formados (CPF com letras, dígitos verificadores inválidos, e-mail sem formato) respondem **400**, pois isso não depende do banco.
 - A resposta leva `Cache-Control: no-store`.
 
+### `POST /api/certificados/emitir` (somente admin)
+
+Gera o PDF e envia por e-mail o certificado de cada aluno **elegível** que ainda não recebeu. O processamento é
+**um participante por vez**: gera o PDF, envia o e-mail e **só depois** grava em `certificados`. Se um e-mail falhar,
+o participante não é registrado, o lote continua e ele volta a ser tentado na próxima emissão.
+
+Corpo opcional: `{ "aluno_id": 1 }` (só aquele aluno) e/ou `{ "simular": true }` (não gera, não envia e não grava).
+
+```bash
+# 1) Ver quantos receberiam (não envia nada)
+curl -X POST http://localhost:3000/api/certificados/emitir \
+  -H "Authorization: Bearer $TOKEN_ADMIN" -H 'Content-Type: application/json' \
+  -d '{"simular": true}'
+
+# 2) Emitir para todos os elegíveis que ainda não receberam
+curl -X POST http://localhost:3000/api/certificados/emitir \
+  -H "Authorization: Bearer $TOKEN_ADMIN" -H 'Content-Type: application/json' -d '{}'
+
+# 3) Só um aluno
+curl -X POST http://localhost:3000/api/certificados/emitir \
+  -H "Authorization: Bearer $TOKEN_ADMIN" -H 'Content-Type: application/json' \
+  -d '{"aluno_id": 1}'
+```
+
+Resposta **200**: `{ "emitidos": 2, "enviados": 1, "ja_enviados": 5, "falhas": [ { "aluno_id": 7, "nome": "João Pereira", "motivo": "Falha no envio do e-mail (EENVELOPE)." } ] }`
+
+- `emitidos`: elegíveis que ainda não tinham recebido (processados nesta chamada); `enviados`: enviados e registrados; `ja_enviados`: pulados porque já tinham recebido.
+- Sem CPF na resposta. O `motivo` é genérico e nunca repassa a mensagem do servidor de e-mail (que pode conter o endereço do destinatário).
+- Com `simular`, a resposta traz também `"simulacao": true` e funciona mesmo sem e-mail configurado.
+- **403:** antes de `certificados_a_partir_de` (a não ser que `ignorar_datas` seja verdadeiro). **503:** e-mail não configurado. **409:** já existe uma emissão em andamento (evita e-mail em dobro se alguém clicar duas vezes). Com `aluno_id`: **404** se não existir e **400** se não for elegível.
+- É seguro repetir: quem já recebeu é pulado. Cada e-mail leva de 1 a 3 segundos; se a requisição expirar no navegador ou na plataforma, o servidor termina o lote mesmo assim. Aguarde e rode de novo para conferir (`ja_enviados` sobe, `emitidos` cai).
+
+### `POST /api/certificados/baixar` (público, com rate limit próprio)
+
+Baixa o PDF. Mesma validação da consulta: `cpf` e `email` juntos (10 downloads por IP a cada 15 minutos, contador
+separado da consulta; `RATE_LIMIT_DOWNLOAD`).
+
+```bash
+curl -X POST http://localhost:3000/api/certificados/baixar \
+  -H 'Content-Type: application/json' \
+  -d '{"cpf": "529.982.247-25", "email": "maria@exemplo.com"}' \
+  -o certificado.pdf
+```
+
+- **200:** o PDF (`application/pdf`, `Content-Disposition: attachment; filename="certificado-jornada-academica.pdf"`, `Cache-Control: no-store`), **só** se o status for `aprovado` e os certificados estiverem liberados.
+- **404** `{ "erro": "Certificado não disponível." }` em **todos** os outros casos (CPF inexistente, e-mail errado, não elegível, ainda não liberado): a resposta é idêntica e não revela se o CPF existe.
+- **400:** CPF ou e-mail mal formados (CPF com letras, dígitos verificadores inválidos, e-mail sem formato).
+
 ## 7. Regras de presença (RN02)
 
 - **Modo `percentual` (padrão, 75%):** elegível se `horas presentes ÷ carga horária total de todas as sessões × 100 >= valor_minimo`.
@@ -352,25 +406,18 @@ Privacidade:
   `carga_horaria_certificado` (20 h) é independente: é só a carga que consta no certificado e **não entra no cálculo**.
 - Atenção: no modo `horas`, um mínimo maior que a soma das sessões (por exemplo, 20 h com 11,5 h de sessões) nunca é atingido.
 
-## 8. Para o módulo de certificado
+## 8. Como o módulo de certificado é organizado
 
-`POST /api/certificados/emitir` fica fora deste módulo. Para montá-la, importe a função de cálculo:
+| Arquivo | Papel |
+|---|---|
+| `src/rotas/certificados.js` | Rotas `/consulta`, `/baixar` e `/emitir` |
+| `src/servicos/consultaCertificado.js` | Validação (CPF + e-mail) e decisão de status, usadas por `/consulta` e `/baixar` |
+| `src/servicos/certificadoPdf.js` | `gerarCertificadoPdf({ nome }, configuracao)` devolve um `Buffer` com o PDF |
+| `src/servicos/email.js` | `enviarCertificado({ para, nome, pdf })` (Resend, SMTP ou Ethereal) |
+| `src/servicos/presenca.js` | `calcularResumoPresenca()` (elegibilidade), reaproveitada pela emissão |
+| `src/servicos/periodos.js` | `certificadosLiberados(configuracao)` (data de liberação) |
 
-```js
-const { calcularResumoPresenca } = require('./servicos/presenca');
-const db = require('./db');
-const { autenticar, exigirPapel } = require('./middlewares/auth');
-
-const { configuracao, alunos } = await calcularResumoPresenca();
-const aprovados = alunos.filter((a) => a.elegivel); // trazem nome, email, disciplina, formato e CPF completo (só dígitos)
-// configuracao inclui: carga_horaria_certificado, reitora_nome, coordenador_nome, certificados_a_partir_de...
-```
-
-- Acrescente a rota em `src/rotas/certificados.js` (já montada em `/api/certificados` e com a rota `/consulta`), protegida por `autenticar, exigirPapel('admin')`.
-- Para um aluno só: `calcularResumoPresenca(db, { alunoId })`.
-- `certificadosLiberados(configuracao)` (em `src/servicos/periodos.js`) diz se a data de liberação já passou.
-- A tabela `certificados` tem `aluno_id` único: grave uma linha depois de enviar o e-mail para saber quem já recebeu.
-- O CPF completo só deve ir para o PDF se o professor decidir isso; nas listas da API ele sai sempre mascarado.
+A tabela `certificados` tem `aluno_id` único; a linha só é gravada depois que o e-mail foi enviado.
 
 ## 9. Deploy com PostgreSQL
 
@@ -411,3 +458,73 @@ com o nome dessa pasta nas configurações do Render ou do Railway; senão ele n
 - Em produção as inscrições só funcionam de `inscricoes_de` a `inscricoes_ate` (16 a 30/11/2026 por padrão). Para testar antes, o admin liga `ignorar_datas` e **desliga de novo** antes do evento.
 - O plano gratuito dessas plataformas hiberna o serviço e pode limitar ou expirar o banco: confira as regras atuais do plano antes da apresentação e faça um teste completo no link público com dados fictícios.
 - Use HTTPS (os dois fornecem) e mantenha `CORS_ORIGIN` restrito ao link do front-end.
+
+## 10. Certificado em PDF e e-mail
+
+### O modelo e o que o código escreve
+
+O modelo é `assets/modelo-certificado.jpg` (A4 paisagem, 2339 × 1654 px). Ele já traz impressos o texto do
+certificado, **"20 horas"**, as datas ("09 e 10 de dezembro de 2026" e "Teresina - PI, 10 de dezembro de 2026") e o
+cargo do coordenador. O código escreve por cima, com a fonte Carlito (licença OFL em `assets/fonts/`, aceita acentos):
+
+- o **nome do participante**, centralizado sobre a linha "certifica que ____" (a fonte reduz para nomes longos; um nome impossível de caber é recusado);
+- o **nome da reitora** (`reitora_nome`) e o cargo "Reitora", e o **nome do coordenador** (`coordenador_nome`, pode ficar vazio). Os placeholders "[Nome do Reitor]" e "[Nome do Coordenador]" do modelo são cobertos com um retângulo da cor do fundo. Inclua o título no próprio nome da configuração (ex.: `Prof. Fulano de Tal`).
+
+O que **não** muda pela configuração: as "20 horas" e as datas, que estão na imagem (`carga_horaria_certificado`
+não é usado no PDF). Se o evento mudar, troque o modelo por uma nova imagem e ajuste as medidas em `LAYOUT`, no topo de
+`src/servicos/certificadoPdf.js` (valores em pixels do modelo). Para parar de cobrir as assinaturas, ponha
+`sobreporAssinaturas: false`.
+
+Para conferir o resultado depois de qualquer ajuste:
+
+```bash
+npm run certificado:exemplo    # gera tmp/certificado-exemplo-curto.pdf, -longo.pdf e -acentos.pdf
+```
+
+### Como o e-mail é enviado
+
+| Modo | Quando é usado | Observação |
+|---|---|---|
+| **Resend** (API HTTPS) | `RESEND_API_KEY` definida | Recomendado em produção: funciona em qualquer plano do Render e do Railway |
+| **SMTP** | `SMTP_HOST` definido | Gmail, Brevo, Mailtrap... Em produção exige `SMTP_USER`, `SMTP_PASS` e `EMAIL_FROM` |
+| **Ethereal** (teste) | Nada definido, fora de produção | Cria uma caixa de teste e imprime no terminal o link para ver o e-mail |
+
+Em produção, sem credenciais, `POST /api/certificados/emitir` responde **503** dizendo quais variáveis faltam (a
+simulação continua funcionando). Assunto: "Seu certificado da VI Jornada Acadêmica da Uninassau Teresina"; o PDF vai
+anexo como `certificado-jornada-academica.pdf`.
+
+### Testar o e-mail no seu computador
+
+**Com o Ethereal (o mais simples, precisa de internet):**
+
+1. Deixe `SMTP_HOST`, `RESEND_API_KEY` e `EMAIL_FROM` vazios no `.env` e rode `npm run dev`.
+2. Libere a emissão antes da data oficial (como admin) e crie alguns alunos com presença:
+   ```bash
+   curl -X PUT http://localhost:3000/api/configuracoes \
+     -H "Authorization: Bearer $TOKEN_ADMIN" -H 'Content-Type: application/json' \
+     -d '{"ignorar_datas": true}'
+   ```
+3. Rode `{"simular": true}` para ver quantos receberiam e depois `{}` para emitir.
+4. O terminal imprime `E-mail de teste (Ethereal). Pré-visualização: https://ethereal.email/message/...`. Abra o link para ver o e-mail e baixar o PDF. Nada é entregue a ninguém de verdade.
+
+**Com o Mailtrap** (caixa de teste na nuvem): crie uma conta gratuita, abra o *Email Testing → Inboxes → SMTP Settings*
+e copie os dados para o `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e um `EMAIL_FROM` qualquer). Os
+e-mails aparecem na caixa do Mailtrap. Um SMTP local como o Mailpit (`SMTP_HOST=localhost`, `SMTP_PORT=1025`, sem usuário e senha) também funciona.
+
+Lembre de **desligar `ignorar_datas`** (`{"ignorar_datas": false}`) antes do evento.
+
+### Configurar o e-mail no Render ou no Railway
+
+Atenção: pela documentação das plataformas, o **Render bloqueia as portas SMTP (25, 465 e 587) nos serviços do plano
+gratuito** e o **Railway só libera SMTP no plano Pro**. Em planos gratuitos, o SMTP falha por tempo esgotado mesmo
+com as credenciais certas. Por isso, use o Resend (API HTTPS):
+
+1. Crie uma conta em resend.com, gere uma **API Key** e, para enviar a qualquer pessoa, verifique um domínio seu. Sem domínio verificado, o endereço de testes `onboarding@resend.dev` costuma entregar só para o e-mail do dono da conta (confira a documentação do Resend).
+2. No serviço da API, defina as variáveis de ambiente:
+   - Render: *Environment → Add Environment Variable*. Railway: aba *Variables*.
+   - `RESEND_API_KEY` = a chave
+   - `EMAIL_FROM` = `Jornada Acadêmica <certificados@seudominio.com>` (domínio verificado)
+3. Salve (o serviço reinicia) e teste com `{"simular": true}` e depois com `{"aluno_id": N}` para um aluno seu antes de emitir para todos.
+
+Se preferir SMTP em um plano pago, defina `SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS` e `EMAIL_FROM`
+(com Gmail, use uma *senha de app*; o limite é de cerca de 500 e-mails por dia).
