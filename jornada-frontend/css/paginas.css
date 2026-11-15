@@ -874,3 +874,11 @@ body.painel .jr-toasts {
 .jr-devs a {
   font-weight: 600;
 }
+
+/* Inscrição: rótulo do grupo "Você é" */
+.rotulo-grupo {
+  display: block;
+  font-weight: 600;
+  color: var(--azul-marinho);
+  margin-bottom: 0.25rem;
+}

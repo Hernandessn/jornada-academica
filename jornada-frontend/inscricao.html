@@ -31,7 +31,8 @@
         <div id="painel-form">
           <h1 class="h2">Inscrever meu trabalho</h1>
           <p class="legenda">
-            Preencha os dados abaixo. Os campos sem “opcional” são obrigatórios.
+            Preencha os dados abaixo. Todos os campos são obrigatórios, exceto
+            os marcados como opcionais.
           </p>
           <div
             id="alerta-geral"
@@ -48,6 +49,36 @@
             O servidor está iniciando, isso pode levar alguns segundos. Aguarde…
           </div>
           <form id="form-inscricao" novalidate>
+            <div class="jr-campo">
+              <span class="rotulo-grupo" id="rotulo-tipo">Você é</span>
+              <div role="radiogroup" aria-labelledby="rotulo-tipo">
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="tipo"
+                    id="tipo-aluno"
+                    value="aluno"
+                    checked
+                  />
+                  <label class="form-check-label" for="tipo-aluno"
+                    >Sou aluno</label
+                  >
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="tipo"
+                    id="tipo-externo"
+                    value="externo"
+                  />
+                  <label class="form-check-label" for="tipo-externo"
+                    >Público externo</label
+                  >
+                </div>
+              </div>
+            </div>
             <div class="jr-campo">
               <label for="nome">Nome completo</label>
               <input
@@ -104,19 +135,16 @@
                 />
                 <p class="jr-msg-erro" id="erro-cpf" hidden></p>
               </div>
-              <div class="col-md-6 jr-campo">
-                <label for="matricula">Matrícula (opcional)</label>
+              <div class="col-md-6 jr-campo" id="campo-matricula">
+                <label for="matricula">Matrícula</label>
                 <input
                   class="jr-input"
                   id="matricula"
                   type="text"
                   inputmode="numeric"
                   autocomplete="off"
-                  aria-describedby="ajuda-matricula erro-matricula"
+                  aria-describedby="erro-matricula"
                 />
-                <p class="legenda mb-0" id="ajuda-matricula">
-                  Deixe em branco se você não é aluno da Uninassau.
-                </p>
                 <p class="jr-msg-erro" id="erro-matricula" hidden></p>
               </div>
             </div>
@@ -133,7 +161,7 @@
                 </select>
                 <p class="jr-msg-erro" id="erro-curso" hidden></p>
               </div>
-              <div class="col-md-6 jr-campo">
+              <div class="col-md-6 jr-campo" id="campo-instituicao" hidden>
                 <label for="instituicao"
                   >Instituição de origem (opcional)</label
                 >
@@ -143,13 +171,21 @@
                   type="text"
                   maxlength="150"
                   autocomplete="organization"
-                  aria-describedby="ajuda-instituicao erro-instituicao"
+                  aria-describedby="erro-instituicao"
                 />
-                <p class="legenda mb-0" id="ajuda-instituicao">
-                  Para participantes de fora da Uninassau.
-                </p>
                 <p class="jr-msg-erro" id="erro-instituicao" hidden></p>
               </div>
+            </div>
+            <div class="jr-campo" id="campo-curso-outro" hidden>
+              <label for="curso_outro">Nome do curso</label>
+              <input
+                class="jr-input"
+                id="curso_outro"
+                type="text"
+                maxlength="100"
+                aria-describedby="erro-curso_outro"
+              />
+              <p class="jr-msg-erro" id="erro-curso_outro" hidden></p>
             </div>
             <div class="row">
               <div class="col-md-6 jr-campo">
