@@ -165,6 +165,7 @@ form.addEventListener("submit", async (ev) => {
   }, 6000); // servidor acordando
   try {
     const dados = {
+      tipo: valores.tipo, // "aluno" (matrícula obrigatória) ou "externo" (matrícula ignorada)
       nome: valores.nome.trim(),
       email: valores.email.trim(),
       telefone: apenasDigitos(valores.telefone),
