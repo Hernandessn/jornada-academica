@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Painel do administrador | VI Jornada Acadêmica da Uninassau Teresina
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link href="css/tokens.css" rel="stylesheet" />
+    <link href="css/components.css" rel="stylesheet" />
+    <link href="css/paginas.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="topo-painel">
+      <div
+        class="container d-flex align-items-center justify-content-between gap-2"
+      >
+        <div>
+          <strong>Painel do administrador</strong
+          ><span class="d-block legenda-topo" id="nome-usuario"></span>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="jr-btn jr-btn-contorno-claro" href="professor.html"
+            ><i class="bi bi-check2-square" aria-hidden="true"></i>Chamada</a
+          >
+          <button class="jr-btn jr-btn-contorno-claro" id="sair" type="button">
+            <i class="bi bi-box-arrow-left" aria-hidden="true"></i>Sair
+          </button>
+        </div>
+      </div>
+    </header>
+    <main class="container py-4 admin">
+      <div
+        id="alerta-geral"
+        class="jr-alerta jr-alerta-erro mb-3"
+        role="alert"
+        hidden
+      ></div>
+      <div
+        id="aviso-teste"
+        class="jr-alerta jr-alerta-erro mb-3"
+        role="alert"
+        hidden
+      >
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <span
+          ><strong>Modo de teste ativo.</strong> As datas de inscrição e de
+          certificado estão sendo ignoradas. Desligue antes da abertura
+          oficial.</span
+        >
+      </div>
+      <section class="resumo" aria-label="Resumo">
+        <div class="jr-card">
+          <span class="legenda">Total de inscritos</span
+          ><strong id="total">–</strong>
+        </div>
+        <div class="jr-card">
+          <span class="legenda">Elegíveis ao certificado</span
+          ><strong id="elegiveis">–</strong>
+        </div>
+        <div class="jr-card">
+          <span class="legenda">Regra de presença</span
+          ><strong id="regra">–</strong>
+        </div>
+      </section>
+
+      <form class="jr-card mt-3" id="form-config" novalidate>
+        <h1 class="h4 mb-3">Configurações</h1>
+        <fieldset>
+          <legend>Regra de presença</legend>
+          <div class="grade-form">
+            <div class="jr-campo">
+              <label for="modo_aprovacao">Modo</label>
+              <select
+                class="jr-input"
+                id="modo_aprovacao"
+                aria-describedby="erro-modo_aprovacao"
+              >
+                <option value="percentual">Percentual de presença</option>
+                <option value="horas">Horas de presença</option>
+              </select>
+              <p class="jr-msg-erro" id="erro-modo_aprovacao" hidden></p>
+            </div>
+            <div class="jr-campo">
+              <label for="valor_minimo">Valor mínimo</label>
+              <input
+                class="jr-input"
+                id="valor_minimo"
+                type="number"
+                step="any"
+                min="0"
+                inputmode="decimal"
+                aria-describedby="dica-valor erro-valor_minimo"
+              />
+              <p class="legenda mb-0" id="dica-valor"></p>
+              <p class="jr-msg-erro" id="erro-valor_minimo" hidden></p>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Datas</legend>
+          <div class="grade-form">
+            <div class="jr-campo">
+              <label for="inscricoes_de">Inscrições: início</label>
+              <input
+                class="jr-input"
+                id="inscricoes_de"
+                type="date"
+                aria-describedby="erro-inscricoes_de"
+              />
+              <p class="jr-msg-erro" id="erro-inscricoes_de" hidden></p>
+            </div>
+            <div class="jr-campo">
+              <label for="inscricoes_ate">Inscrições: fim</label>
+              <input
+                class="jr-input"
+                id="inscricoes_ate"
+                type="date"
+                aria-describedby="erro-inscricoes_ate"
+              />
+              <p class="jr-msg-erro" id="erro-inscricoes_ate" hidden></p>
+            </div>
+            <div class="jr-campo">
+              <label for="certificados_a_partir_de"
+                >Certificados disponíveis a partir de</label
+              >
+              <input
+                class="jr-input"
+                id="certificados_a_partir_de"
+                type="date"
+                aria-describedby="erro-certificados_a_partir_de"
+              />
+              <p
+                class="jr-msg-erro"
+                id="erro-certificados_a_partir_de"
+                hidden
+              ></p>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Assinaturas do certificado</legend>
+          <div class="grade-form">
+            <div class="jr-campo">
+              <label for="reitora_nome">Nome da reitora</label>
+              <input
+                class="jr-input"
+                id="reitora_nome"
+                type="text"
+                maxlength="150"
+                aria-describedby="erro-reitora_nome"
+              />
+              <p class="jr-msg-erro" id="erro-reitora_nome" hidden></p>
+            </div>
+            <div class="jr-campo">
+              <label for="coordenador_nome">Nome do coordenador</label>
+              <input
+                class="jr-input"
+                id="coordenador_nome"
+                type="text"
+                maxlength="150"
+                aria-describedby="erro-coordenador_nome"
+              />
+              <p class="jr-msg-erro" id="erro-coordenador_nome" hidden></p>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Testes</legend>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="ignorar_datas"
+            />
+            <label class="form-check-label" for="ignorar_datas"
+              >Modo de teste: ignorar as datas de inscrição e de
+              certificado</label
+            >
+          </div>
+        </fieldset>
+        <button class="jr-btn jr-btn-primario" id="salvar" type="submit">
+          <span
+            class="spinner-border"
+            role="status"
+            aria-hidden="true"
+            hidden
+          ></span
+          ><span id="texto-salvar">Salvar configurações</span>
+        </button>
+      </form>
+
+      <section class="jr-card mt-3" aria-labelledby="titulo-emissao">
+        <h2 class="h4" id="titulo-emissao">Emissão de certificados</h2>
+        <p class="legenda" id="texto-emissao">Carregando…</p>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="jr-btn jr-btn-contorno" id="simular" type="button">
+            Simular (não envia nada)
+          </button>
+          <button class="jr-btn jr-btn-cta" id="emitir" type="button" disabled>
+            Emitir certificados
+          </button>
+        </div>
+        <div id="resultado-emissao" class="mt-3" aria-live="polite"></div>
+      </section>
+    </main>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

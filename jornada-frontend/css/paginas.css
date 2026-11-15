@@ -813,3 +813,40 @@ body.painel .jr-toasts {
 #cronograma .cronograma strong {
   color: var(--amarelo);
 }
+
+/* ===== Painel do admin ===== */
+.admin fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+.admin legend {
+  font: 700 1.1rem var(--fonte-titulo);
+  color: var(--azul-marinho);
+  margin-bottom: 0.75rem;
+}
+.grade-form {
+  display: grid;
+  gap: 0 1rem;
+}
+@media (min-width: 768px) {
+  .grade-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Cabeçalho dos painéis: quebra de linha e botões menores no celular */
+.topo-painel .container {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+@media (max-width: 575.98px) {
+  .topo-painel strong {
+    font-size: 1rem;
+  }
+  .topo-painel .jr-btn {
+    min-height: 2.5rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
