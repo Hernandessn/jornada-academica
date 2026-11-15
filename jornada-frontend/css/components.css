@@ -235,6 +235,12 @@
   height: 2.25rem;
   width: auto;
 }
+.jr-rodape .jr-sep {
+  flex: none;
+  width: 1px;
+  height: 2rem;
+  background: var(--borda);
+}
 .jr-rodape .jr-lema {
   font-style: italic;
   margin: 1rem 0 0;
