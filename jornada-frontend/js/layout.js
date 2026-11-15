@@ -1,5 +1,6 @@
 // Navbar, rodapé e toasts reutilizáveis. Uso: montarLayout({ ativo: 'inicio' | 'certificado' | 'inscricao' | 'entrar' | '' })
-import { EVENTO, SUPORTE, REDES, SITE } from "./config.js";
+import { EVENTO, SUPORTE, REDES, SITE, DEVS } from "./config.js";
+import "./animacoes.js";
 
 const A = "assets/";
 const LINKS = [
@@ -9,6 +10,17 @@ const LINKS = [
   ["cronograma", "index.html#cronograma", "Cronograma"],
   ["certificado", "certificado.html", "Certificado"],
 ];
+
+const ehLink = (u) => /^https?:\/\//.test(u || "");
+function escapar(t) {
+  return String(t).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+}
 
 export function montarLayout({ ativo = "" } = {}) {
   // Link para pular ao conteúdo (acessibilidade para quem usa o teclado)
@@ -46,11 +58,22 @@ export function montarLayout({ ativo = "" } = {}) {
     const suporte = SUPORTE.exemplo
       ? ""
       : `<div class="mt-2">${SUPORTE.email}<br><span class="text-nowrap">${SUPORTE.telefone}</span></div>`;
+    // Só mostra desenvolvedores com link válido (nada incompleto vai ao ar)
+    const devs = DEVS.filter((d) => d.nome && ehLink(d.url))
+      .map(
+        (d) =>
+          `<a href="${d.url}" target="_blank" rel="noopener noreferrer" aria-label="${escapar(d.nome)} (${escapar(d.rotulo)})">${escapar(d.nome)}</a>`,
+      )
+      .join(" e ");
+    const linhaDevs = devs
+      ? `<p class="jr-devs">Desenvolvido por ${devs}</p>`
+      : "";
     rod.innerHTML = `<footer class="jr-rodape"><img class="jr-faixas esq" src="${A}faixas-vetoriais.png" alt="" aria-hidden="true"><img class="jr-faixas dir" src="${A}faixas-vetoriais.png" alt="" aria-hidden="true">
       <div class="container"><div class="row gy-3 align-items-center"><div class="col-lg-7">
         <div class="jr-placa"><img src="${A}logo-uninassau-horizontal.png" alt="UNINASSAU Teresina"><span class="jr-sep" aria-hidden="true"></span><img src="${A}logo-6-jornada-recorte.png" alt="Logo da VI Jornada Acadêmica"></div>
         <p class="jr-lema">${EVENTO.lema}</p></div>
-        <div class="col-lg-5 jr-contato"><div class="mb-2">${instagram}</div><div>${EVENTO.local}</div><a href="${SITE}">${SITE.replace("https://", "")}</a>${suporte}</div></div></div></footer>`;
+        <div class="col-lg-5 jr-contato"><div class="mb-2">${instagram}</div><div>${EVENTO.local}</div><a href="${SITE}">${SITE.replace("https://", "")}</a>${suporte}</div>
+        <div class="col-12">${linhaDevs}</div></div></div></footer>`;
   }
 }
 
