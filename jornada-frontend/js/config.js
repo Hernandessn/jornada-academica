@@ -2,7 +2,7 @@
 const local = ["localhost", "127.0.0.1"].includes(location.hostname);
 export const API_URL = local
   ? "http://localhost:3000"
-  : "https://jornada-academica-8axu.onrender.com"; // TODO: URL do Render/Railway
+  : "https://jornada-academica-8axu.onrender.com";
 export const USAR_MOCK_CERTIFICADO = true; // não é mais usado (a rota de consulta existe)
 
 export const EVENTO = {
