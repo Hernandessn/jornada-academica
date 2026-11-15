@@ -4,8 +4,12 @@ const { criarApp } = require('./app');
 const app = criarApp();
 
 const servidor = app.listen(config.porta, '0.0.0.0', () => {
+  const endereco = config.producao
+    ? config.url
+    : `${config.url}:${config.porta}`;
+
   console.log(
-    `API da Jornada iniciada na porta ${config.porta} (${config.ambiente})`
+    `API da Jornada rodando em ${endereco} (${config.ambiente})`
   );
 });
 
