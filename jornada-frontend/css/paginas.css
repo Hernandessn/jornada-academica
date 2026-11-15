@@ -492,21 +492,26 @@ section[aria-label="Pilares da Jornada"] {
 
 /* ===== Rodapé claro: logos originais, sem placa branca ===== */
 .jr-rodape {
-  background: #dce6f8;
+  background: var(--azul-marinho);
   color: var(--azul-marinho);
   border-top: 4px solid var(--amarelo);
 }
 .jr-rodape a,
 .jr-rodape .jr-lema,
 .jr-rodape .jr-contato {
-  color: var(--azul-marinho);
+  color: var(--borda);
 }
-.jr-rodape .jr-placa {
-  background: none;
-  padding: 0;
-  border-radius: 0;
+/* ===== Rodapé: logos sobre placa branca, igual à navbar ===== */
+.jr-rodape {
+  background: var(--azul-marinho);
+  color: #fff;
+  border-top: 4px solid var(--amarelo);
 }
-
+.jr-rodape a,
+.jr-rodape .jr-lema,
+.jr-rodape .jr-contato {
+  color: var(--borda);
+}
 /* ===== Header azul + tamanhos menores no celular ===== */
 .jr-navbar {
   background: var(--azul-marinho);
