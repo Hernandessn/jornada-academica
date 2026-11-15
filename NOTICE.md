@@ -1,0 +1,2 @@
+Copyright (c) 2026 Hernandes Sales Neves e Carlos Rony Andrade Oliveira. Todos os direitos reservados.
+Este projeto foi desenvolvido como atividade acadêmica da UNINASSAU Teresina (Hackathon da VI Jornada Acadêmica) e é entregue ao professor para avaliação. O uso em outras finalidades, inclusive na VI Jornada Acadêmica, depende de acordo por escrito com os autores.
