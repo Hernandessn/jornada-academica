@@ -36,6 +36,15 @@ module.exports = {
     ? process.env.DATABASE_SSL.toLowerCase() !== 'false'
     : producao,
   sqliteFile: process.env.SQLITE_FILE || './dev.sqlite3',
+  // E-mail dos certificados (ver src/servicos/email.js).
+  email: {
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: Number(process.env.SMTP_PORT) || 587,
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
+    from: process.env.EMAIL_FROM || '',
+    resendApiKey: process.env.RESEND_API_KEY || '',
+  },
   // Rate limit por IP, em janelas de 15 minutos.
   limites: {
     janelaMs: 15 * 60 * 1000,
@@ -43,5 +52,6 @@ module.exports = {
     login: numero('RATE_LIMIT_LOGIN', 10),
     inscricoes: numero('RATE_LIMIT_INSCRICOES', 30),
     consulta: numero('RATE_LIMIT_CONSULTA', 10),
+    download: numero('RATE_LIMIT_DOWNLOAD', 10),
   },
 };
