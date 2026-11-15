@@ -42,6 +42,7 @@ router.get(
         'alunos.cpf',
         'alunos.matricula',
         'alunos.curso',
+        'alunos.instituicao',
         'alunos.disciplina',
         'alunos.formato',
         'alunos.criado_em'
