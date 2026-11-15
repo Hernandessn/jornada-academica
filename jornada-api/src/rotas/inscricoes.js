@@ -63,18 +63,33 @@ const inscricaoSchema = z
       .refine((v) => cpfValido(v), 'CPF inválido.')
       .transform(somenteDigitos),
 
-    matricula: texto('Informe a matrícula.')
-      .trim()
-      .min(1, 'Informe a matrícula.')
-      .refine((v) => /^[\d.\-/\s]+$/.test(v), 'A matrícula deve conter apenas números.')
+    // Opcional: participantes externos não têm matrícula (gravada como '' no banco).
+    matricula: z
+      .string({ invalid_type_error: 'A matrícula deve conter apenas números.' })
+      .nullish()
+      .transform((v) => (typeof v === 'string' ? v.trim() : ''))
+      .refine((v) => v === '' || /^[\d.\-/\s]+$/.test(v), 'A matrícula deve conter apenas números.')
       .refine(
-        (v) => {
-          const n = somenteDigitos(v).length;
-          return n >= 4 && n <= 20;
-        },
+        (v) => v === '' || (somenteDigitos(v).length >= 4 && somenteDigitos(v).length <= 20),
         'Matrícula inválida (use de 4 a 20 dígitos).'
       )
-      .transform(somenteDigitos),
+      .transform((v) => somenteDigitos(v)),
+
+    // "Sou aluno" ou "Público externo". Aluno: a matrícula é obrigatória. Externo: a matrícula é ignorada.
+    // Sem este campo (clientes antigos), vale só a regra "matrícula opcional".
+    tipo: z
+      .string({ invalid_type_error: 'Tipo de participante inválido.' })
+      .nullish()
+      .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : ''))
+      .refine((v) => v === '' || ['aluno', 'externo'].includes(v), 'Escolha: aluno ou externo.'),
+
+    // Opcional: instituição de origem de quem é de fora da Uninassau.
+    instituicao: z
+      .string({ invalid_type_error: 'Instituição inválida.' })
+      .nullish()
+      .transform((v) => (typeof v === 'string' ? v.trim() : ''))
+      .refine((v) => v.length <= 150, 'A instituição deve ter no máximo 150 caracteres.')
+      .transform((v) => v || null),
 
     curso: texto('Informe o curso.')
       .trim()
@@ -90,6 +105,9 @@ const inscricaoSchema = z
     formato: z.string({ invalid_type_error: 'Formato inválido.' }).nullish(),
   })
   .superRefine((dados, ctx) => {
+    if (dados.tipo === 'aluno' && !dados.matricula) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['matricula'], message: 'Informe a matrícula.' });
+    }
     if (!DISCIPLINAS.includes(dados.disciplina)) return; // o erro de disciplina já foi reportado
     if (FORMATO_AUTOMATICO[dados.disciplina]) return;
 
@@ -108,8 +126,9 @@ const inscricaoSchema = z
       });
     }
   })
-  .transform((dados) => ({
+  .transform(({ tipo, ...dados }) => ({
     ...dados,
+    matricula: tipo === 'externo' ? '' : dados.matricula,
     formato: FORMATO_AUTOMATICO[dados.disciplina] || normalizarFormato(dados.formato),
   }));
 
@@ -169,6 +188,7 @@ router.post(
         email: aluno.email,
         cpf: mascararCpf(aluno.cpf),
         curso: aluno.curso,
+        instituicao: aluno.instituicao,
         disciplina: aluno.disciplina,
         formato: aluno.formato,
         criado_em: aluno.criado_em,

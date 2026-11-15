@@ -163,7 +163,9 @@ Nas demais rotas protegidas, envie `Authorization: Bearer <token>`.
 
 ### `POST /api/inscricoes` (público)
 
-Campos obrigatórios: `nome` (nome e sobrenome), `email`, `telefone`, `cpf`, `matricula`, `curso`, `disciplina`.
+Campos obrigatórios: `nome` (nome e sobrenome), `email`, `telefone`, `cpf`, `curso`, `disciplina`.
+Opcionais, para **participantes externos** (o edital aceita trabalhos de fora da instituição): `matricula` (só alunos da Uninassau; sem ela fica vazia) e `instituicao` (até 150 caracteres). Se a matrícula for informada, continua validada (4 a 20 dígitos).
+Campo opcional `tipo`: `"aluno"` (matrícula obrigatória) ou `"externo"` (a matrícula é ignorada e gravada vazia). Sem `tipo`, vale a regra de matrícula opcional. O `curso` é texto livre (o front oferece a lista de cursos e a opção "Outros" com campo para digitar).
 CPF, telefone e matrícula podem vir com ou sem máscara; o servidor guarda só dígitos.
 
 **Disciplina e formato:** `disciplina` precisa ser uma de `APIExt I`, `APIExt II`, `APIExt III`, `APIExt IV`,
@@ -222,7 +224,7 @@ curl -H "Authorization: Bearer $TOKEN_PROF" "http://localhost:3000/api/alunos?bu
 curl -H "Authorization: Bearer $TOKEN_PROF" "http://localhost:3000/api/alunos?evento_id=1"
 ```
 
-Resposta: `{ "total": 1, "alunos": [ { "id", "nome", "email", "telefone", "cpf", "matricula", "curso", "disciplina", "formato", "criado_em", "presente"? } ] }`.
+Resposta: `{ "total": 1, "alunos": [ { "id", "nome", "email", "telefone", "cpf", "matricula", "curso", "instituicao", "disciplina", "formato", "criado_em", "presente"? } ] }`.
 
 ### `POST /api/frequencia` (professor, admin)
 

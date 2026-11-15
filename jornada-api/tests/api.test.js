@@ -44,7 +44,7 @@ describe('POST /api/inscricoes', () => {
   test('formulário vazio: 400 com mensagem em todos os campos', async () => {
     const res = await request(app).post('/api/inscricoes').send({}).expect(400);
     expect(res.body.erro).toBeDefined();
-    for (const campo of ['nome', 'email', 'telefone', 'cpf', 'matricula', 'curso', 'disciplina']) {
+    for (const campo of ['nome', 'email', 'telefone', 'cpf', 'curso', 'disciplina']) {
       expect(res.body.campos[campo]).toEqual(expect.any(String));
     }
   });
@@ -57,12 +57,11 @@ describe('POST /api/inscricoes', () => {
         email: ' ',
         telefone: ' ',
         cpf: ' ',
-        matricula: ' ',
         curso: ' ',
         disciplina: ' ',
       })
       .expect(400);
-    expect(Object.keys(res.body.campos)).toHaveLength(7);
+    expect(Object.keys(res.body.campos)).toHaveLength(6);
   });
 
   test('CPF com letras: 400 no campo cpf', async () => {
@@ -112,6 +111,70 @@ describe('POST /api/inscricoes', () => {
     expect(salvo.email).toBe('maria@exemplo.com');
     expect(salvo.disciplina).toBe('APIExt I');
     expect(salvo.formato).toBe('banner');
+  });
+
+  test('participante externo: sem matrícula e com instituição, 201', async () => {
+    const dados = alunoValido({ instituicao: '  Universidade Federal do Piauí ' });
+    delete dados.matricula;
+    const res = await request(app).post('/api/inscricoes').send(dados).expect(201);
+    expect(res.body.aluno.instituicao).toBe('Universidade Federal do Piauí');
+
+    const salvo = await db('alunos').first();
+    expect(salvo.matricula).toBe('');
+    expect(salvo.instituicao).toBe('Universidade Federal do Piauí');
+  });
+
+  test('matrícula vazia ou nula é aceita; aluno da Uninassau fica sem instituição', async () => {
+    await request(app).post('/api/inscricoes').send(alunoValido({ matricula: '' })).expect(201);
+    expect((await db('alunos').first()).matricula).toBe('');
+    await db('alunos').del();
+
+    const res = await request(app).post('/api/inscricoes').send(alunoValido({ matricula: null })).expect(201);
+    expect(res.body.aluno.instituicao).toBeNull();
+    await db('alunos').del();
+
+    await request(app).post('/api/inscricoes').send(alunoValido()).expect(201);
+    const salvo = await db('alunos').first();
+    expect(salvo.matricula).toBe('20231234');
+    expect(salvo.instituicao).toBeNull();
+  });
+
+  test('tipo "aluno" exige matrícula; tipo "externo" ignora a matrícula; tipo inválido é recusado', async () => {
+    const semMatricula = alunoValido({ tipo: 'aluno', matricula: '' });
+    const r1 = await request(app).post('/api/inscricoes').send(semMatricula).expect(400);
+    expect(r1.body.campos.matricula).toMatch(/matrícula/i);
+
+    const r2 = await request(app).post('/api/inscricoes').send(alunoValido({ tipo: 'outro' })).expect(400);
+    expect(r2.body.campos.tipo).toEqual(expect.any(String));
+
+    await request(app).post('/api/inscricoes').send(alunoValido({ tipo: 'aluno' })).expect(201);
+    expect((await db('alunos').first()).matricula).toBe('20231234');
+    await db('alunos').del();
+
+    await request(app)
+      .post('/api/inscricoes')
+      .send(alunoValido({ tipo: 'externo', matricula: '20231234', instituicao: 'UFPI' }))
+      .expect(201);
+    const externo = await db('alunos').first();
+    expect(externo.matricula).toBe('');
+    expect(externo.instituicao).toBe('UFPI');
+  });
+
+  test('matrícula informada continua validada; instituição longa demais é recusada', async () => {
+    const letras = await request(app)
+      .post('/api/inscricoes')
+      .send(alunoValido({ matricula: 'abc123' }))
+      .expect(400);
+    expect(letras.body.campos.matricula).toMatch(/apenas números/i);
+
+    const curta = await request(app).post('/api/inscricoes').send(alunoValido({ matricula: '12' })).expect(400);
+    expect(curta.body.campos.matricula).toMatch(/4 a 20/);
+
+    const longa = await request(app)
+      .post('/api/inscricoes')
+      .send(alunoValido({ instituicao: 'X'.repeat(151) }))
+      .expect(400);
+    expect(longa.body.campos.instituicao).toMatch(/150/);
   });
 
   test('CPF duplicado: 409 apontando o campo cpf (com ou sem máscara)', async () => {
