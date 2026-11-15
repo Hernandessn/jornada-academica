@@ -1,7 +1,7 @@
 // Único ponto de acesso à API. Todas as páginas chamam estas funções.
 import { API_URL } from "./config.js";
 
-const TEMPO_LIMITE_MS = 45000; // folga para o servidor gratuito "acordar"
+const TEMPO_LIMITE_MS = 70000; // folga para o Render (plano gratuito) acordar
 
 // Erro padronizado: status HTTP, mensagem geral e mensagens por campo.
 export class ApiError extends Error {
