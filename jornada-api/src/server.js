@@ -3,10 +3,9 @@ const { criarApp } = require('./app');
 
 const app = criarApp();
 
-const servidor = app.listen(config.porta, () => {
-  console.log(`API da Jornada rodando em http://localhost:${config.porta} (${config.ambiente})`);
-});
-
+console.log(
+  `API da Jornada rodando em ${config.url}${config.porta ? `:${config.porta}` : ''} (${config.ambiente})`
+);
 // Encerramento limpo (Render/Railway enviam SIGTERM ao fazer novo deploy)
 function encerrar() {
   servidor.close(() => process.exit(0));

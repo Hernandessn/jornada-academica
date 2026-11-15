@@ -26,6 +26,7 @@ module.exports = {
   ambiente,
   producao,
   porta: Number(process.env.PORT) || 3000,
+  url: process.env.APP_URL || 'http://localhost',
   corsOrigins,
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
