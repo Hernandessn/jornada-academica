@@ -1,6 +1,8 @@
 // Validação de conforto no navegador. A regra de verdade é do servidor.
 import { apenasDigitos } from "./mascaras.js";
 
+export const OUTROS = "__outros__"; // valor do item "Outros" na lista de cursos
+
 export function cpfValido(cpf) {
   const d = apenasDigitos(cpf);
   if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
@@ -34,12 +36,24 @@ export function validarInscricao(v) {
   if (!v.cpf.trim()) e.cpf = "Informe seu CPF.";
   else if (/[A-Za-z]/.test(v.cpf) || !cpfValido(v.cpf)) e.cpf = "CPF inválido.";
 
-  const mat = apenasDigitos(v.matricula);
-  if (!mat) e.matricula = "Informe sua matrícula.";
-  else if (mat.length < 4)
-    e.matricula = "A matrícula deve ter de 4 a 20 dígitos.";
+  // Matrícula: obrigatória só para alunos. Público externo não tem esse campo.
+  if (v.tipo === "aluno") {
+    const mat = apenasDigitos(v.matricula);
+    if (!mat) e.matricula = "Informe sua matrícula.";
+    else if (mat.length < 4)
+      e.matricula = "A matrícula deve ter de 4 a 20 dígitos.";
+  }
 
   if (!v.curso) e.curso = "Selecione seu curso.";
+  else if (v.curso === OUTROS) {
+    const outro = v.cursoOutro.trim();
+    if (outro.length < 2) e.curso_outro = "Digite o nome do curso.";
+    else if (outro.length > 100)
+      e.curso_outro = "O nome do curso deve ter até 100 caracteres.";
+  }
+
+  if (v.tipo === "externo" && v.instituicao.trim().length > 150)
+    e.instituicao = "Use até 150 caracteres.";
   if (!v.disciplina) e.disciplina = "Selecione sua disciplina.";
   if (!v.formato) e.formato = "Selecione o formato da apresentação.";
   if (!v.aceite) e.aceite = "Aceite o uso dos dados para continuar.";

@@ -863,3 +863,22 @@ body.painel .jr-toasts {
 .topo-painel :focus-visible {
   outline-color: var(--amarelo);
 }
+
+/* Rodapé: desenvolvedores (o rodapé agora é azul-marinho) */
+.jr-devs {
+  margin: 0.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.875rem;
+}
+.jr-devs a {
+  font-weight: 600;
+}
+
+/* Inscrição: rótulo do grupo "Você é" */
+.rotulo-grupo {
+  display: block;
+  font-weight: 600;
+  color: var(--azul-marinho);
+  margin-bottom: 0.25rem;
+}

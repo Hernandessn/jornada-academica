@@ -3,7 +3,7 @@ const local = ["localhost", "127.0.0.1"].includes(location.hostname);
 export const API_URL = local
   ? "http://localhost:3000"
   : "https://TROCAR-PELA-URL-DO-BACK-END.onrender.com"; // TODO: URL do Render/Railway
-export const USAR_MOCK_CERTIFICADO = true; // usado na página de certificado (etapa 6)
+export const USAR_MOCK_CERTIFICADO = true; // não é mais usado (a rota de consulta existe)
 
 export const EVENTO = {
   nome: "VI Jornada Acadêmica da Uninassau Teresina",
@@ -22,11 +22,40 @@ export const REDES = {
   instagram: "https://www.instagram.com/vi_jornadaacademicauninassau",
 };
 export const SITE = "https://www.uninassau.edu.br";
-// EXEMPLO: substitua pela lista oficial de cursos.
+// Desenvolvedores do rodapé. Só aparece quem tiver "url" (começando com https://).
+export const DEVS = [
+  {
+    nome: "Rony",
+    rotulo: "Instagram",
+    url: "https://www.instagram.com/c.r_rony",
+  },
+  {
+    nome: "Hernandes",
+    rotulo: "Portfólio",
+    url: "https://linkhernandess.vercel.app/",
+  },
+];
+// Cursos de graduação da UNINASSAU Teresina (CONFERIR no site oficial). "Outros" é adicionado pelo formulário.
 export const CURSOS = [
   "Administração",
+  "Análise e Desenvolvimento de Sistemas",
+  "Ciências Contábeis",
+  "Design",
   "Direito",
   "Enfermagem",
-  "Engenharia de Software",
+  "Engenharia Civil",
+  "Estética e Cosmética",
+  "Farmácia",
+  "Fisioterapia",
+  "Fonoaudiologia",
+  "Gestão de Recursos Humanos",
+  "História",
+  "Medicina",
+  "Medicina Veterinária",
+  "Odontologia",
+  "Pedagogia",
   "Psicologia",
+  "Publicidade e Propaganda",
+  "Radiologia",
+  "Terapia Ocupacional",
 ];

@@ -8,7 +8,7 @@ import {
   mascaraMatricula,
   apenasDigitos,
 } from "./mascaras.js";
-import { validarInscricao } from "./validacao.js";
+import { validarInscricao, OUTROS } from "./validacao.js";
 
 montarLayout({ ativo: "inscricao" });
 acordarServidor();
@@ -23,6 +23,8 @@ const CAMPOS = [
   "cpf",
   "matricula",
   "curso",
+  "curso_outro",
+  "instituicao",
   "disciplina",
   "formato",
   "aceite",
@@ -49,6 +51,8 @@ const FORMATO_AUTO = {
 };
 let enviando = false;
 
+const tipoAtual = () =>
+  document.querySelector('input[name="tipo"]:checked').value;
 function preencher(select, pares) {
   pares.forEach(([v, t]) => {
     const o = document.createElement("option");
@@ -57,10 +61,7 @@ function preencher(select, pares) {
     select.append(o);
   });
 }
-preencher(
-  $("curso"),
-  CURSOS.map((c) => [c, c]),
-);
+preencher($("curso"), [...CURSOS.map((c) => [c, c]), [OUTROS, "Outros"]]);
 preencher(
   $("disciplina"),
   DISCIPLINAS.map((d) => [d, d]),
@@ -70,6 +71,18 @@ aplicarMascara($("cpf"), mascaraCpf);
 aplicarMascara($("telefone"), mascaraTelefone);
 aplicarMascara($("matricula"), mascaraMatricula);
 
+function ajustarTipo() {
+  const externo = tipoAtual() === "externo";
+  $("campo-matricula").hidden = externo; // público externo não informa matrícula
+  $("campo-instituicao").hidden = !externo;
+  if (externo) $("matricula").value = "";
+  else $("instituicao").value = "";
+}
+function ajustarCurso() {
+  const outros = $("curso").value === OUTROS;
+  $("campo-curso-outro").hidden = !outros;
+  if (!outros) $("curso_outro").value = "";
+}
 function ajustarFormato() {
   const auto = FORMATO_AUTO[$("disciplina").value];
   $("formato").value = auto || "";
@@ -78,6 +91,10 @@ function ajustarFormato() {
     ? "Definido pelo edital para esta disciplina."
     : "";
 }
+document
+  .querySelectorAll('input[name="tipo"]')
+  .forEach((r) => r.addEventListener("change", ajustarTipo));
+$("curso").addEventListener("change", ajustarCurso);
 $("disciplina").addEventListener("change", ajustarFormato);
 
 function limparErros() {
@@ -89,15 +106,23 @@ function limparErros() {
   });
 }
 function mostrarErro(campo, msg) {
-  if (!$(campo)) return;
-  $(campo).classList.add("is-erro");
-  $(campo).setAttribute("aria-invalid", "true");
+  if (campo === "curso" && $("curso").value === OUTROS) campo = "curso_outro";
+  const el = $(campo);
+  if (!el || !$(`erro-${campo}`)) return;
+  if (el.closest("[hidden]")) {
+    // campo oculto: a mensagem vai para o aviso do topo
+    $("alerta-geral").textContent = `Não foi possível concluir: ${msg}`;
+    $("alerta-geral").hidden = false;
+    return;
+  }
+  el.classList.add("is-erro");
+  el.setAttribute("aria-invalid", "true");
   $(`erro-${campo}`).textContent = msg;
   $(`erro-${campo}`).hidden = false;
 }
 function mostrarErros(erros) {
   Object.entries(erros).forEach(([c, m]) => mostrarErro(c, m));
-  const primeiro = CAMPOS.find((c) => erros[c]);
+  const primeiro = CAMPOS.find((c) => erros[c] && !$(c).closest("[hidden]"));
   if (primeiro) $(primeiro).focus();
 }
 function estadoEnvio(ativo) {
@@ -118,12 +143,15 @@ form.addEventListener("submit", async (ev) => {
   if (enviando) return; // anti-duplo-clique
   limparErros();
   const valores = {
+    tipo: tipoAtual(),
     nome: $("nome").value,
     email: $("email").value,
     telefone: $("telefone").value,
     cpf: $("cpf").value,
     matricula: $("matricula").value,
     curso: $("curso").value,
+    cursoOutro: $("curso_outro").value,
+    instituicao: $("instituicao").value,
     disciplina: $("disciplina").value,
     formato: $("formato").value,
     aceite: $("aceite").checked,
@@ -141,10 +169,14 @@ form.addEventListener("submit", async (ev) => {
       email: valores.email.trim(),
       telefone: apenasDigitos(valores.telefone),
       cpf: apenasDigitos(valores.cpf),
-      matricula: apenasDigitos(valores.matricula),
-      curso: valores.curso,
       disciplina: valores.disciplina,
+      curso:
+        valores.curso === OUTROS ? valores.cursoOutro.trim() : valores.curso,
     };
+    if (valores.tipo === "aluno")
+      dados.matricula = apenasDigitos(valores.matricula);
+    if (valores.tipo === "externo" && valores.instituicao.trim())
+      dados.instituicao = valores.instituicao.trim();
     if (!FORMATO_AUTO[valores.disciplina]) dados.formato = valores.formato; // nas APIExt o servidor define o formato
     const { aluno } = await inscrever(dados);
     $("msg-sucesso").textContent =
@@ -156,6 +188,8 @@ form.addEventListener("submit", async (ev) => {
     $("painel-sucesso").hidden = false;
     $("painel-sucesso").focus();
     form.reset();
+    ajustarTipo();
+    ajustarCurso();
     ajustarFormato(); // não guardamos CPF nem outros dados no navegador
   } catch (erro) {
     if (!(erro instanceof ApiError)) throw erro;
