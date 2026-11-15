@@ -35,11 +35,27 @@ export const DEVS = [
     url: "https://linkhernandess.vercel.app/",
   },
 ];
-// EXEMPLO: substitua pela lista oficial de cursos.
+// Cursos de graduação da UNINASSAU Teresina (CONFERIR no site oficial). "Outros" é adicionado pelo formulário.
 export const CURSOS = [
   "Administração",
+  "Análise e Desenvolvimento de Sistemas",
+  "Ciências Contábeis",
+  "Design",
   "Direito",
   "Enfermagem",
-  "Engenharia de Software",
+  "Engenharia Civil",
+  "Estética e Cosmética",
+  "Farmácia",
+  "Fisioterapia",
+  "Fonoaudiologia",
+  "Gestão de Recursos Humanos",
+  "História",
+  "Medicina",
+  "Medicina Veterinária",
+  "Odontologia",
+  "Pedagogia",
   "Psicologia",
+  "Publicidade e Propaganda",
+  "Radiologia",
+  "Terapia Ocupacional",
 ];
