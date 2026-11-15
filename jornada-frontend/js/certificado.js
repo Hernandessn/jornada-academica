@@ -1,5 +1,10 @@
-import { consultarCertificado, acordarServidor, ApiError } from "./api.js";
-import { montarLayout } from "./layout.js";
+import {
+  consultarCertificado,
+  baixarCertificado,
+  acordarServidor,
+  ApiError,
+} from "./api.js";
+import { montarLayout, mostrarToast } from "./layout.js";
 import { aplicarMascara, mascaraCpf, apenasDigitos } from "./mascaras.js";
 import { cpfValido } from "./validacao.js";
 
@@ -19,6 +24,8 @@ const fmtData = (d) =>
     ? d.slice(0, 10).split("-").reverse().join("/")
     : String(d);
 let enviando = false;
+let baixando = false;
+let consulta = null; // só em memória; nada é guardado no navegador
 
 aplicarMascara($("cpf"), mascaraCpf);
 
@@ -48,14 +55,47 @@ function linhaPresenca(p, m) {
     : `Sua presença: ${num(p.percentual)}%. Mínimo exigido: ${num(m.valor_minimo)}%.`;
 }
 
+async function baixar(botao) {
+  if (baixando || !consulta) return; // anti-duplo-clique
+  baixando = true;
+  botao.disabled = true;
+  botao.textContent = "Baixando…";
+  try {
+    const blob = await baixarCertificado(consulta.cpf, consulta.email);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "certificado-jornada-academica.pdf";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+    mostrarToast(e.mensagem, "erro");
+  } finally {
+    baixando = false;
+    botao.disabled = false;
+    botao.textContent = "Baixar certificado (PDF)";
+  }
+}
+
 function exibirResultado(r) {
   switch (r.status) {
-    case "aprovado":
-      return mostrar(
+    case "aprovado": {
+      mostrar(
         "sucesso",
         `Parabéns, ${r.primeiro_nome}!`,
-        `Você atingiu a presença mínima. ${linhaPresenca(r.presenca, r.minimo)} O download do certificado em PDF ainda não está disponível nesta página; a organização informará como recebê-lo.`,
+        `Você atingiu a presença mínima. ${linhaPresenca(r.presenca, r.minimo)}`,
       );
+      const botao = document.createElement("button");
+      botao.type = "button";
+      botao.className = "jr-btn jr-btn-primario mt-3";
+      botao.textContent = "Baixar certificado (PDF)";
+      botao.addEventListener("click", () => baixar(botao));
+      $("resultado").append(botao);
+      return;
+    }
     case "nao_elegivel":
       return mostrar(
         "info",
@@ -99,6 +139,7 @@ $("form-consulta").addEventListener("submit", async (ev) => {
     $(`erro-${c}`).hidden = true;
   });
   $("resultado").replaceChildren();
+  consulta = null;
   const cpf = $("cpf").value;
   const email = $("email").value.trim();
   if (!cpfValido(cpf))
@@ -111,7 +152,8 @@ $("form-consulta").addEventListener("submit", async (ev) => {
   $("botao").querySelector(".spinner-border").hidden = false;
   $("texto-botao").textContent = "Consultando…";
   try {
-    exibirResultado(await consultarCertificado(apenasDigitos(cpf), email));
+    consulta = { cpf: apenasDigitos(cpf), email };
+    exibirResultado(await consultarCertificado(consulta.cpf, consulta.email));
   } catch (e) {
     if (!(e instanceof ApiError)) throw e;
     if (Object.keys(e.campos).length)
