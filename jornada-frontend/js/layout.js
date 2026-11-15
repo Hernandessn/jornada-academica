@@ -11,6 +11,16 @@ const LINKS = [
 ];
 
 export function montarLayout({ ativo = "" } = {}) {
+  // Link para pular ao conteúdo (acessibilidade para quem usa o teclado)
+  const main = document.querySelector("main");
+  if (main && !main.id) main.id = "conteudo";
+  if (main && !document.querySelector(".pular")) {
+    document.body.insertAdjacentHTML(
+      "afterbegin",
+      '<a class="pular" href="#conteudo">Pular para o conteúdo</a>',
+    );
+  }
+
   const nav = document.getElementById("app-navbar");
   const rod = document.getElementById("app-rodape");
   if (nav) {
@@ -24,7 +34,6 @@ export function montarLayout({ ativo = "" } = {}) {
       <div class="collapse navbar-collapse" id="menu-nav"><ul class="navbar-nav ms-auto align-items-xl-center gap-xl-2">
         ${itens}
         <li><a class="nav-link ${ativo === "entrar" ? "ativo" : ""}" href="login.html"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Entrar</a></li>
-        
       </ul></div></div></nav>`;
   }
   if (rod) {

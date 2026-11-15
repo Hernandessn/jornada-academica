@@ -850,3 +850,21 @@ body.painel .jr-toasts {
     font-size: 0.9rem;
   }
 }
+
+/* ===== Acessibilidade ===== */
+.pular {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 2000;
+  background: var(--amarelo);
+  color: var(--azul-marinho);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+.pular:focus {
+  left: 0;
+}
+.topo-painel :focus-visible {
+  outline-color: var(--amarelo);
+}
