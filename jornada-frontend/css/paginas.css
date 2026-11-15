@@ -798,7 +798,7 @@ body.painel .jr-toasts {
 /* Programação e cronograma em azul */
 #programacao .jr-card,
 #cronograma .jr-card {
-  background: var(--azul-royal);
+  background: var(--azul-marinho);
   border: 0;
   color: #fff;
 }
