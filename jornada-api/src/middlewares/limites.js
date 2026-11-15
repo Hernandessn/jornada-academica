@@ -40,4 +40,10 @@ const limiteConsulta = criarLimite({
   mensagem: 'Muitas consultas. Aguarde alguns minutos e tente novamente.',
 });
 
-module.exports = { limiteGeral, limiteLogin, limiteInscricoes, limiteConsulta };
+// Download do certificado em PDF: contador próprio, separado da consulta (cada participante usa os dois).
+const limiteDownload = criarLimite({
+  max: config.limites.download,
+  mensagem: 'Muitos downloads. Aguarde alguns minutos e tente novamente.',
+});
+
+module.exports = { limiteGeral, limiteLogin, limiteInscricoes, limiteConsulta, limiteDownload };
