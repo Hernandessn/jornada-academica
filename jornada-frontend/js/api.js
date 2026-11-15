@@ -13,14 +13,19 @@ export class ApiError extends Error {
   }
 }
 
-async function requisicao(metodo, rota, corpo, { auth = false } = {}) {
+async function requisicao(
+  metodo,
+  rota,
+  corpo,
+  { auth = false, limite = TEMPO_LIMITE_MS } = {},
+) {
   const cabecalhos = { "Content-Type": "application/json" };
   if (auth) {
     const token = sessionStorage.getItem("jr_token");
     if (token) cabecalhos.Authorization = `Bearer ${token}`;
   }
   const controle = new AbortController();
-  const timer = setTimeout(() => controle.abort(), TEMPO_LIMITE_MS);
+  const timer = setTimeout(() => controle.abort(), limite);
   let resposta;
   try {
     resposta = await fetch(`${API_URL}${rota}`, {
@@ -56,17 +61,50 @@ async function requisicao(metodo, rota, corpo, { auth = false } = {}) {
   throw new ApiError(resposta.status, mensagem, dados.campos || {});
 }
 
-// Públicas
+// ---------- Públicas ----------
 export const inscrever = (dados) =>
   requisicao("POST", "/api/inscricoes", dados);
 export const listarEventos = () => requisicao("GET", "/api/eventos");
 export const login = (email, senha) =>
   requisicao("POST", "/api/auth/login", { email, senha });
+export const consultarCertificado = (cpf, email) =>
+  requisicao("POST", "/api/certificados/consulta", { cpf, email });
 // Ping silencioso: acorda o servidor em planos gratuitos que hibernam.
 export const acordarServidor = () =>
   fetch(`${API_URL}/api/saude`, { mode: "no-cors" }).catch(() => {});
 
-// Protegidas (professor/admin)
+// Download do PDF (a resposta é um arquivo, não JSON). Devolve um Blob.
+export async function baixarCertificado(cpf, email) {
+  let resposta;
+  try {
+    resposta = await fetch(`${API_URL}/api/certificados/baixar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cpf, email }),
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.",
+    );
+  }
+  if (!resposta.ok) {
+    let dados = {};
+    try {
+      dados = await resposta.json();
+    } catch {
+      /* sem JSON */
+    }
+    const msg =
+      resposta.status === 429
+        ? "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo."
+        : dados.erro || "Certificado não disponível.";
+    throw new ApiError(resposta.status, msg, dados.campos || {});
+  }
+  return resposta.blob();
+}
+
+// ---------- Protegidas (professor/admin) ----------
 export function listarAlunos(eventoId, busca) {
   const p = new URLSearchParams();
   if (eventoId) p.set("evento_id", eventoId);
@@ -85,5 +123,14 @@ export const registrarPresenca = (alunoId, eventoId) =>
 export const resumoFrequencia = () =>
   requisicao("GET", "/api/frequencia/resumo", null, { auth: true });
 
-export const consultarCertificado = (cpf, email) =>
-  requisicao("POST", "/api/certificados/consulta", { cpf, email });
+// ---------- Protegidas (somente admin) ----------
+export const lerConfiguracoes = () =>
+  requisicao("GET", "/api/configuracoes", null, { auth: true });
+export const salvarConfiguracoes = (dados) =>
+  requisicao("PUT", "/api/configuracoes", dados, { auth: true });
+// A emissão envia um e-mail por aluno (1 a 3 s cada): damos até 5 minutos.
+export const emitirCertificados = (opcoes = {}) =>
+  requisicao("POST", "/api/certificados/emitir", opcoes, {
+    auth: true,
+    limite: 300000,
+  });

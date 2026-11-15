@@ -5,7 +5,7 @@ import { montarLayout } from "./layout.js";
 montarLayout({ ativo: "entrar" });
 acordarServidor();
 
-const DESTINO = { professor: "professor.html", admin: "professor.html" }; // admin.html chega na etapa 7
+const DESTINO = { professor: "professor.html", admin: "admin.html" };
 const ir = (s) => {
   location.href = DESTINO[s.papel] || "index.html";
 };
