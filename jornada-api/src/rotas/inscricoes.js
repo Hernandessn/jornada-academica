@@ -75,6 +75,14 @@ const inscricaoSchema = z
       )
       .transform((v) => somenteDigitos(v)),
 
+    // "Sou aluno" ou "Público externo". Aluno: a matrícula é obrigatória. Externo: a matrícula é ignorada.
+    // Sem este campo (clientes antigos), vale só a regra "matrícula opcional".
+    tipo: z
+      .string({ invalid_type_error: 'Tipo de participante inválido.' })
+      .nullish()
+      .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : ''))
+      .refine((v) => v === '' || ['aluno', 'externo'].includes(v), 'Escolha: aluno ou externo.'),
+
     // Opcional: instituição de origem de quem é de fora da Uninassau.
     instituicao: z
       .string({ invalid_type_error: 'Instituição inválida.' })
@@ -97,6 +105,9 @@ const inscricaoSchema = z
     formato: z.string({ invalid_type_error: 'Formato inválido.' }).nullish(),
   })
   .superRefine((dados, ctx) => {
+    if (dados.tipo === 'aluno' && !dados.matricula) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['matricula'], message: 'Informe a matrícula.' });
+    }
     if (!DISCIPLINAS.includes(dados.disciplina)) return; // o erro de disciplina já foi reportado
     if (FORMATO_AUTOMATICO[dados.disciplina]) return;
 
@@ -115,8 +126,9 @@ const inscricaoSchema = z
       });
     }
   })
-  .transform((dados) => ({
+  .transform(({ tipo, ...dados }) => ({
     ...dados,
+    matricula: tipo === 'externo' ? '' : dados.matricula,
     formato: FORMATO_AUTOMATICO[dados.disciplina] || normalizarFormato(dados.formato),
   }));
 

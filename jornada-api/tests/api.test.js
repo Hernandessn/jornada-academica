@@ -139,6 +139,27 @@ describe('POST /api/inscricoes', () => {
     expect(salvo.instituicao).toBeNull();
   });
 
+  test('tipo "aluno" exige matrícula; tipo "externo" ignora a matrícula; tipo inválido é recusado', async () => {
+    const semMatricula = alunoValido({ tipo: 'aluno', matricula: '' });
+    const r1 = await request(app).post('/api/inscricoes').send(semMatricula).expect(400);
+    expect(r1.body.campos.matricula).toMatch(/matrícula/i);
+
+    const r2 = await request(app).post('/api/inscricoes').send(alunoValido({ tipo: 'outro' })).expect(400);
+    expect(r2.body.campos.tipo).toEqual(expect.any(String));
+
+    await request(app).post('/api/inscricoes').send(alunoValido({ tipo: 'aluno' })).expect(201);
+    expect((await db('alunos').first()).matricula).toBe('20231234');
+    await db('alunos').del();
+
+    await request(app)
+      .post('/api/inscricoes')
+      .send(alunoValido({ tipo: 'externo', matricula: '20231234', instituicao: 'UFPI' }))
+      .expect(201);
+    const externo = await db('alunos').first();
+    expect(externo.matricula).toBe('');
+    expect(externo.instituicao).toBe('UFPI');
+  });
+
   test('matrícula informada continua validada; instituição longa demais é recusada', async () => {
     const letras = await request(app)
       .post('/api/inscricoes')
