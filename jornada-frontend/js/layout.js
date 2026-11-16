@@ -73,16 +73,16 @@ export function montarLayout({ ativo = "" } = {}) {
           `<a href="${d.url}" target="_blank" rel="noopener noreferrer" aria-label="${escapar(d.nome)} (${escapar(d.rotulo)})">${escapar(d.nome)}</a>`,
       )
       .join(" e ");
-    const equipes = (EQUIPES || [])
+    const listaEquipes = (EQUIPES || [])
       .map((e) => String(e || "").trim())
-      .filter(Boolean)
-      .map(escapar)
-      .join(", ");
+      .filter(Boolean);
     const creditos = [
       devs ? `<p>Desenvolvido por ${devs}</p>` : "",
-      equipes ? `<p>Equipes participantes: ${equipes}</p>` : "",
       ORIENTADOR && String(ORIENTADOR).trim()
         ? `<p>Professor orientador: <strong>${escapar(String(ORIENTADOR).trim())}</strong></p>`
+        : "",
+      listaEquipes.length
+        ? `<p><button type="button" class="jr-btn jr-btn-contorno-claro jr-btn-coautores" id="abrir-coautores" aria-haspopup="dialog"><i class="bi bi-people-fill" aria-hidden="true"></i> Co-autores (${listaEquipes.length})</button></p>`
         : "",
     ].join("");
     const linhaDevs = creditos ? `<div class="jr-devs">${creditos}</div>` : "";
@@ -92,7 +92,76 @@ export function montarLayout({ ativo = "" } = {}) {
         <p class="jr-lema">${EVENTO.lema}</p></div>
         <div class="col-lg-5 jr-contato"><div class="mb-2">${instagram}</div><div>${EVENTO.local}</div><a href="${SITE}">${SITE.replace("https://", "")}</a>${suporte}</div>
         <div class="col-12">${linhaDevs}</div></div></div></footer>`;
+    montarJanelaCoautores(listaEquipes);
   }
+}
+
+// Iniciais para o círculo ao lado do nome (ignora "da", "de", "do"...)
+function iniciais(nome) {
+  const p = nome.split(/\s+/).filter((w) => w.length > 2);
+  const a = (p[0] || nome)[0] || "";
+  const b = p[1] ? p[1][0] : "";
+  return (a + b).toUpperCase();
+}
+
+// Janela (dialog nativo) com a lista de co-autores. Só usa textContent: nada de HTML vindo de dados.
+function montarJanelaCoautores(lista) {
+  const abrir = document.getElementById("abrir-coautores");
+  if (!abrir || !lista.length || document.getElementById("janela-coautores"))
+    return;
+  const dlg = document.createElement("dialog");
+  dlg.id = "janela-coautores";
+  dlg.className = "jr-janela";
+  dlg.setAttribute("aria-labelledby", "titulo-coautores");
+
+  const cab = document.createElement("div");
+  cab.className = "jr-janela-cab";
+  const textos = document.createElement("div");
+  const titulo = document.createElement("h2");
+  titulo.id = "titulo-coautores";
+  titulo.textContent = "Co-autores";
+  const sub = document.createElement("p");
+  sub.textContent = `Equipes participantes · ${lista.length} ${lista.length === 1 ? "pessoa" : "pessoas"}`;
+  textos.append(titulo, sub);
+  const fechar = document.createElement("button");
+  fechar.type = "button";
+  fechar.className = "jr-janela-fechar";
+  fechar.setAttribute("aria-label", "Fechar lista de co-autores");
+  fechar.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+  cab.append(textos, fechar);
+
+  const corpo = document.createElement("div");
+  corpo.className = "jr-janela-corpo";
+  const ol = document.createElement("ol");
+  ol.className = "jr-lista-pessoas";
+  lista.forEach((nome) => {
+    const li = document.createElement("li");
+    const av = document.createElement("span");
+    av.className = "jr-avatar";
+    av.setAttribute("aria-hidden", "true");
+    av.textContent = iniciais(nome);
+    const n = document.createElement("span");
+    n.textContent = nome;
+    li.append(av, n);
+    ol.append(li);
+  });
+  corpo.append(ol);
+  dlg.append(cab, corpo);
+  document.body.append(dlg);
+
+  abrir.addEventListener("click", () => {
+    dlg.showModal();
+    document.body.classList.add("jr-sem-rolagem");
+    corpo.scrollTop = 0;
+  });
+  fechar.addEventListener("click", () => dlg.close());
+  // clique fora da janela (no fundo escuro) também fecha
+  dlg.addEventListener("click", (ev) => {
+    if (ev.target === dlg) dlg.close();
+  });
+  dlg.addEventListener("close", () =>
+    document.body.classList.remove("jr-sem-rolagem"),
+  );
 }
 
 // Toast acessível. tipo: 'sucesso' | 'erro' | 'info'
