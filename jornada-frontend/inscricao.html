@@ -162,9 +162,7 @@
                 <p class="jr-msg-erro" id="erro-curso" hidden></p>
               </div>
               <div class="col-md-6 jr-campo" id="campo-instituicao" hidden>
-                <label for="instituicao"
-                  >Instituição de origem (opcional)</label
-                >
+                <label for="instituicao">Instituição de origem</label>
                 <input
                   class="jr-input"
                   id="instituicao"
@@ -172,6 +170,7 @@
                   maxlength="150"
                   autocomplete="organization"
                   aria-describedby="erro-instituicao"
+                  required
                 />
                 <p class="jr-msg-erro" id="erro-instituicao" hidden></p>
               </div>
@@ -214,6 +213,20 @@
                 <p class="jr-msg-erro" id="erro-formato" hidden></p>
               </div>
             </div>
+            <div class="jr-campo">
+              <label for="resumo">Resumo do trabalho</label>
+              <textarea
+                class="jr-input"
+                id="resumo"
+                rows="7"
+                maxlength="2000"
+                aria-describedby="contador-resumo erro-resumo"
+                required
+              ></textarea>
+              <p class="legenda mb-0 text-end" id="contador-resumo">0/2000</p>
+              <p class="visually-hidden" id="aviso-resumo" aria-live="polite"></p>
+              <p class="jr-msg-erro" id="erro-resumo" hidden></p>
+            </div>
             <div class="jr-alerta jr-alerta-info mb-2">
               <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
               <span
@@ -234,6 +247,31 @@
                 finalidade.</label
               >
               <p class="jr-msg-erro" id="erro-aceite" hidden></p>
+            </div>
+            <div class="jr-campo">
+              <label for="arquivo">Arquivo do trabalho</label>
+              <input
+                class="jr-input jr-arquivo"
+                id="arquivo"
+                type="file"
+                accept=".pdf,.doc,.docx,.odt"
+                aria-describedby="ajuda-arquivo erro-arquivo"
+                required
+              />
+              <p class="legenda mb-0" id="ajuda-arquivo">
+                Formatos aceitos: PDF, DOC, DOCX ou ODT, de até 10 MB.
+              </p>
+              <div class="arquivo-escolhido" id="arquivo-escolhido" hidden>
+                <span class="arquivo-nome" id="arquivo-nome"></span>
+                <button
+                  class="jr-btn jr-btn-contorno"
+                  id="remover-arquivo"
+                  type="button"
+                >
+                  Remover
+                </button>
+              </div>
+              <p class="jr-msg-erro" id="erro-arquivo" hidden></p>
             </div>
             <button
               class="jr-btn jr-btn-cta jr-btn-bloco"
@@ -261,6 +299,7 @@
             <i class="bi bi-check-circle-fill" aria-hidden="true"></i
             ><span id="msg-sucesso"></span>
           </div>
+          <p id="linha-recebido" hidden></p>
           <p id="linha-formato">
             Formato de apresentação: <strong id="formato-sucesso"></strong>
           </p>

@@ -1,5 +1,6 @@
 // Validação de conforto no navegador. A regra de verdade é do servidor.
 import { apenasDigitos } from "./mascaras.js";
+import { RESUMO_MAX, ARQUIVO_MAX_MB, ARQUIVO_EXTENSOES } from "./config.js";
 
 export const OUTROS = "__outros__"; // valor do item "Outros" na lista de cursos
 
@@ -13,6 +14,26 @@ export function cpfValido(cpf) {
     if (dv !== Number(d[tam])) return false;
   }
   return true;
+}
+
+// Quebra de linha conta como 1 caractere (como no servidor).
+export const tamanhoResumo = (t) => t.replace(/\r\n?/g, "\n").trim().length;
+
+export function formatarTamanho(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+}
+
+// Valida o arquivo pela extensão (o MIME do .odt no Windows não é confiável) e pelo tamanho.
+export function validarArquivo(arquivo) {
+  if (!arquivo) return "Anexe o arquivo do seu trabalho (PDF, DOC, DOCX ou ODT).";
+  const nome = arquivo.name.toLowerCase();
+  if (!ARQUIVO_EXTENSOES.some((ext) => nome.endsWith(ext)))
+    return "Envie um arquivo PDF, DOC, DOCX ou ODT.";
+  if (arquivo.size === 0) return "O arquivo está vazio.";
+  if (arquivo.size > ARQUIVO_MAX_MB * 1024 * 1024)
+    return `O arquivo deve ter até ${ARQUIVO_MAX_MB} MB.`;
+  return "";
 }
 
 // Recebe os valores do formulário e devolve { campo: mensagem } só com os campos inválidos.
@@ -52,10 +73,19 @@ export function validarInscricao(v) {
       e.curso_outro = "O nome do curso deve ter até 100 caracteres.";
   }
 
-  if (v.tipo === "externo" && v.instituicao.trim().length > 150)
-    e.instituicao = "Use até 150 caracteres.";
+  if (v.tipo === "externo") {
+    const inst = v.instituicao.trim();
+    if (!inst) e.instituicao = "Informe a instituição de origem.";
+    else if (inst.length > 150) e.instituicao = "Use até 150 caracteres.";
+  }
   if (!v.disciplina) e.disciplina = "Selecione sua disciplina.";
   if (!v.formato) e.formato = "Selecione o formato da apresentação.";
+  const tamResumo = tamanhoResumo(v.resumo);
+  if (!tamResumo) e.resumo = "Escreva o resumo do seu trabalho.";
+  else if (tamResumo > RESUMO_MAX)
+    e.resumo = `O resumo deve ter até ${RESUMO_MAX} caracteres.`;
   if (!v.aceite) e.aceite = "Aceite o uso dos dados para continuar.";
+  const erroArquivo = validarArquivo(v.arquivo);
+  if (erroArquivo) e.arquivo = erroArquivo;
   return e;
 }

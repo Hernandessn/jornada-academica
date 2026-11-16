@@ -1,5 +1,13 @@
 // Navbar, rodapé e toasts reutilizáveis. Uso: montarLayout({ ativo: 'inicio' | 'certificado' | 'inscricao' | 'entrar' | '' })
-import { EVENTO, SUPORTE, REDES, SITE, DEVS } from "./config.js";
+import {
+  EVENTO,
+  SUPORTE,
+  REDES,
+  SITE,
+  DEVS,
+  ORIENTADOR,
+  EQUIPES,
+} from "./config.js";
 import "./animacoes.js";
 
 const A = "assets/";
@@ -65,9 +73,19 @@ export function montarLayout({ ativo = "" } = {}) {
           `<a href="${d.url}" target="_blank" rel="noopener noreferrer" aria-label="${escapar(d.nome)} (${escapar(d.rotulo)})">${escapar(d.nome)}</a>`,
       )
       .join(" e ");
-    const linhaDevs = devs
-      ? `<p class="jr-devs">Desenvolvido por ${devs}</p>`
-      : "";
+    const equipes = (EQUIPES || [])
+      .map((e) => String(e || "").trim())
+      .filter(Boolean)
+      .map(escapar)
+      .join(", ");
+    const creditos = [
+      devs ? `<p>Desenvolvido por ${devs}</p>` : "",
+      equipes ? `<p>Equipes participantes: ${equipes}</p>` : "",
+      ORIENTADOR && String(ORIENTADOR).trim()
+        ? `<p>Professor orientador: <strong>${escapar(String(ORIENTADOR).trim())}</strong></p>`
+        : "",
+    ].join("");
+    const linhaDevs = creditos ? `<div class="jr-devs">${creditos}</div>` : "";
     rod.innerHTML = `<footer class="jr-rodape"><img class="jr-faixas esq" src="${A}faixas-vetoriais.png" alt="" aria-hidden="true"><img class="jr-faixas dir" src="${A}faixas-vetoriais.png" alt="" aria-hidden="true">
       <div class="container"><div class="row gy-3 align-items-center"><div class="col-lg-7">
         <div class="jr-placa"><img src="${A}logo-uninassau-horizontal.png" alt="UNINASSAU Teresina"><span class="jr-sep" aria-hidden="true"></span><img src="${A}logo-6-jornada-recorte.png" alt="Logo da VI Jornada Acadêmica"></div>
