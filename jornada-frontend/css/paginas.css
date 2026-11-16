@@ -882,3 +882,158 @@ body.painel .jr-toasts {
   color: var(--azul-marinho);
   margin-bottom: 0.25rem;
 }
+/* ===== Prioridade 1: edital, resumo, upload e créditos ===== */
+.bloco-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.bloco-cabecalho h2 {
+  margin-bottom: 0;
+}
+.jr-btn-edital {
+  background: var(--vermelho); /* exceção consciente: pedido do professor, acompanha a logomarca */
+  color: #fff; /* contraste ≈ 4,8:1 (AA) */
+  border-color: var(--vermelho);
+  text-align: center;
+}
+.jr-btn-edital:hover {
+  background: #b8061b;
+  border-color: #b8061b;
+  color: #fff;
+}
+.jr-btn-edital:focus-visible {
+  outline: 3px solid var(--azul-marinho);
+  outline-offset: 3px;
+  color: #fff;
+}
+@media (max-width: 575.98px) {
+  .jr-btn-edital {
+    width: 100%;
+  }
+}
+
+textarea.jr-input {
+  resize: vertical;
+  min-height: 9rem;
+  line-height: 1.5;
+}
+#contador-resumo {
+  margin-top: 0.25rem;
+}
+.jr-arquivo {
+  padding: 0.4rem 0.6rem;
+}
+.jr-arquivo::file-selector-button {
+  min-height: 2.25rem;
+  margin-right: 0.75rem;
+  padding: 0.35rem 0.9rem;
+  border: 0;
+  border-radius: var(--raio);
+  background: var(--azul-royal);
+  color: #fff;
+  font: 600 0.9rem var(--fonte-corpo);
+  cursor: pointer;
+}
+.arquivo-escolhido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+.arquivo-nome {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+/* Rodapé: créditos em várias linhas */
+.jr-devs p {
+  margin: 0 0 0.35rem;
+}
+.jr-devs p:last-child {
+  margin-bottom: 0;
+}
+/* ===== Prioridade 1: edital, resumo, upload e créditos ===== */
+.jr-btn-edital {
+  background: var(--vermelho); /* exceção consciente: pedido do professor, acompanha a logomarca */
+  color: #fff; /* contraste ≈ 4,8:1 (AA) */
+  border-color: var(--vermelho);
+  text-align: center;
+}
+.jr-btn-edital:hover {
+  background: #b8061b;
+  border-color: #b8061b;
+  color: #fff;
+}
+.jr-btn-edital:focus-visible {
+  outline: 3px solid var(--azul-marinho);
+  outline-offset: 3px;
+  color: #fff;
+}
+/* Posições do botão do edital: abaixo do botão do topo e ao lado do botão de "Sobre" */
+.botoes-coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.botoes-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+textarea.jr-input {
+  resize: vertical;
+  min-height: 9rem;
+  line-height: 1.5;
+}
+#contador-resumo {
+  margin-top: 0.25rem;
+}
+.jr-arquivo {
+  padding: 0.4rem 0.6rem;
+}
+.jr-arquivo::file-selector-button {
+  min-height: 2.25rem;
+  margin-right: 0.75rem;
+  padding: 0.35rem 0.9rem;
+  border: 0;
+  border-radius: var(--raio);
+  background: var(--azul-royal);
+  color: #fff;
+  font: 600 0.9rem var(--fonte-corpo);
+  cursor: pointer;
+}
+.arquivo-escolhido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+.arquivo-nome {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+/* Rodapé: créditos em várias linhas */
+.jr-devs p {
+  margin: 0 0 0.35rem;
+}
+.jr-devs p:last-child {
+  margin-bottom: 0;
+}
+
+.sobre .jr-btn-edital:focus-visible {
+  outline-color: var(--amarelo); /* o fundo da seção é azul-marinho */
+}
