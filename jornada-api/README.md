@@ -1,10 +1,10 @@
 # API da VI Jornada Acadêmica UNINASSAU
 
 Back-end (Node.js + Express) do sistema de **inscrição, frequência e certificado** da Jornada.
-Cobre API, banco, autenticação e regras de negócio. O front-end e o gerador de certificado
-consomem esta API.
+Cobre API, banco, autenticação, regras de negócio, geração do certificado em PDF e envio por e-mail.
+O front-end consome esta API.
 
-- Stack: Node.js 18+, Express, Knex (SQLite em desenvolvimento, PostgreSQL em produção), JWT, bcryptjs, zod, helmet, cors, express-rate-limit.
+- Stack: Node.js 22 LTS, Express, Knex (SQLite em desenvolvimento, PostgreSQL em produção), JWT, bcryptjs, zod, helmet, cors, express-rate-limit, pdf-lib (certificado em PDF) e nodemailer / Resend (e-mail).
 - Testes: Jest + Supertest (rodam em SQLite na memória, sem tocar no seu banco).
 
 ## 1. Instalação
@@ -19,15 +19,16 @@ npm run dev               # http://localhost:3000
 
 Teste rápido: `curl http://localhost:3000/api/saude`
 
-> `better-sqlite3` usa um módulo nativo. Se `npm install` falhar no Windows, use Node 20 ou 22 (LTS),
-> que têm binários prontos.
+> `better-sqlite3` usa um módulo nativo e **só tem binário pronto para o Node 22 LTS** (e 20). Em versões mais
+> novas, como a 26, o `npm install` tenta compilar e falha. Use o Node 22. No Render, defina `NODE_VERSION=22`
+> (veja a seção 9).
 
 ### Já tinha o banco de desenvolvimento da versão anterior?
 
 Atualize sem perder dados:
 
 ```bash
-npm run migrate    # acrescenta as colunas novas (disciplina, formato, horários, configurações)
+npm run migrate    # acrescenta as colunas novas (disciplina, formato, horários, configurações, instituicao)
 npm run seed       # troca os 2 eventos antigos de 10 h pelas 4 sessões novas
 ```
 
@@ -103,7 +104,7 @@ npm test
 
 | Arquivo | O que cobre |
 |---|---|
-| `tests/api.test.js` | Formulário vazio, CPF com letras, CPF inválido, CPF e e-mail duplicados (inclusive simultâneos), presença duplicada, acesso sem login (401), papel errado (403), resumo de presença e troca da regra (horas ↔ percentual) |
+| `tests/api.test.js` | Formulário vazio, inscrição de participantes externos (matrícula opcional, `tipo`, `instituicao`), CPF com letras, CPF inválido, CPF e e-mail duplicados (inclusive simultâneos), presença duplicada, acesso sem login (401), papel errado (403), resumo de presença e troca da regra (horas ↔ percentual) |
 | `tests/requisitos.test.js` | Disciplina obrigatória, formato automático, período de inscrições, configurações novas, consulta de certificado (inclusive CPF com e-mail incorreto) |
 | `tests/certificados.test.js` | Emissão (acesso, só elegíveis, não reenviar, falha isolada, simular, trava), geração do PDF, download público |
 | `tests/limites.test.js` | Rate limit da consulta, do download e do login |
@@ -195,7 +196,7 @@ curl -X POST http://localhost:3000/api/inscricoes \
   }'
 ```
 
-- **201:** `{ "mensagem": "...", "aluno": { "id", "nome", "email", "cpf": "***.982.247-**", "curso", "disciplina", "formato", "criado_em" } }`
+- **201:** `{ "mensagem": "...", "aluno": { "id", "nome", "email", "cpf": "***.982.247-**", "curso", "instituicao", "disciplina", "formato", "criado_em" } }`
 - **400:** `campos` com a mensagem de cada campo inválido (ex.: `campos.formato` para PIC sem formato)
 - **409:** CPF ou e-mail repetido, com `campos.cpf` e/ou `campos.email`
 - **403:** fora do período de inscrições (veja `inscricoes_de`, `inscricoes_ate` e `ignorar_datas` em `/api/configuracoes`).
@@ -426,6 +427,8 @@ A tabela `certificados` tem `aluno_id` único; a linha só é gravada depois que
 Antes de tudo, suba o código para um repositório no GitHub (o `.gitignore` já deixa `.env` e `node_modules` de fora).
 Se a API está em uma subpasta do repositório (por exemplo `jornada-api/`), defina o **Root Directory** do serviço
 com o nome dessa pasta nas configurações do Render ou do Railway; senão ele não encontra o `package.json`.
+Confira também que o `CORS_ORIGIN` é exatamente o endereço do front, **sem barra no final**: com barra, o
+navegador bloqueia as chamadas (erro de CORS).
 
 ### Render
 
@@ -437,10 +440,12 @@ com o nome dessa pasta nas configurações do Render ou do Railway; senão ele n
    - Health Check Path: `/api/saude`
 3. **Variáveis de ambiente** do serviço:
    - `NODE_ENV=production`
+   - `NODE_VERSION=22` (obrigatório: sem isso o Render usa o Node mais novo e o `better-sqlite3` não instala)
    - `DATABASE_URL` = a URL copiada do banco
    - `JWT_SECRET` = valor aleatório com 32+ caracteres (comando na seção 2)
    - `CORS_ORIGIN` = link do front-end (ex.: `https://jornada.vercel.app`), sem barra no final
    - `SEED_ADMIN_EMAIL`, `SEED_ADMIN_SENHA`, `SEED_PROFESSOR_EMAIL`, `SEED_PROFESSOR_SENHA` com senhas próprias
+   - `RESEND_API_KEY` e `EMAIL_FROM` (e-mail dos certificados; veja a seção 10)
 4. Faça o deploy e teste: `curl https://SEU-SERVICO.onrender.com/api/saude`.
 
 ### Railway
