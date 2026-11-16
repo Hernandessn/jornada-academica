@@ -22,6 +22,13 @@ const numero = (nome, padrao) => {
   return Number.isFinite(n) && n > 0 ? n : padrao;
 };
 
+// Variável booleana: aceita true/false, 1/0, sim/nao. Vazia ou ausente = padrão.
+const booleano = (nome, padrao) => {
+  const v = (process.env[nome] || '').trim().toLowerCase();
+  if (!v) return padrao;
+  return ['true', '1', 'sim', 'yes'].includes(v);
+};
+
 module.exports = {
   ambiente,
   producao,
@@ -45,6 +52,17 @@ module.exports = {
     smtpPass: process.env.SMTP_PASS || '',
     from: process.env.EMAIL_FROM || '',
     resendApiKey: process.env.RESEND_API_KEY || '',
+  },
+  // Arquivo enviado na inscrição (PDF, DOC, DOCX, ODT): limite por arquivo, em MB.
+  // Fica na memória durante o envio e depois no banco; no Render gratuito (512 MB de RAM) não exagere.
+  upload: {
+    maxMb: numero('UPLOAD_MAX_MB', 10),
+  },
+  // Regras do formulário de inscrição ainda dependentes de decisão do professor.
+  inscricao: {
+    resumoObrigatorio: booleano('RESUMO_OBRIGATORIO', false),
+    arquivoObrigatorio: booleano('ARQUIVO_OBRIGATORIO', false),
+    instituicaoObrigatoriaExterno: booleano('INSTITUICAO_OBRIGATORIA_EXTERNO', true),
   },
   // Rate limit por IP, em janelas de 15 minutos.
   limites: {
