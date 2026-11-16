@@ -61,6 +61,9 @@ Os valores vêm de `SEED_*` no `.env`. **Em produção o seed se recusa a rodar 
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_SENHA` | Admin criado pelo seed | ver `.env.example` |
 | `SEED_PROFESSOR_EMAIL` / `SEED_PROFESSOR_SENHA` | Professor criado pelo seed | ver `.env.example` |
 | `RATE_LIMIT_GERAL` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_INSCRICOES` / `RATE_LIMIT_CONSULTA` / `RATE_LIMIT_DOWNLOAD` | Requisições por IP a cada 15 min | `600` / `10` / `30` / `10` / `10` |
+| `UPLOAD_MAX_MB` | Tamanho máximo do arquivo enviado na inscrição, em MB. O arquivo passa pela memória e fica no banco: no Render gratuito (512 MB de RAM) mantenha 10 ou menos | `10` |
+| `RESUMO_OBRIGATORIO` / `ARQUIVO_OBRIGATORIO` | `true` exige o resumo / o arquivo na inscrição | `false` / `false` |
+| `INSTITUICAO_OBRIGATORIA_EXTERNO` | `true` exige a instituição quando `tipo` é `externo` | `true` |
 | `RESEND_API_KEY` | Chave do Resend (envio de e-mail por API HTTPS). Se definida, é o modo usado | vazio |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Envio por SMTP (Gmail, Brevo, Mailtrap...). Sem `SMTP_HOST` e fora de produção, usa o Ethereal (caixa de teste) | vazio / `587` |
 | `EMAIL_FROM` | Remetente dos certificados, ex.: `Jornada Acadêmica <certificados@seudominio.com>`. **Obrigatório em produção** | vazio |
@@ -106,6 +109,7 @@ npm test
 |---|---|
 | `tests/api.test.js` | Formulário vazio, inscrição de participantes externos (matrícula opcional, `tipo`, `instituicao`), CPF com letras, CPF inválido, CPF e e-mail duplicados (inclusive simultâneos), presença duplicada, acesso sem login (401), papel errado (403), resumo de presença e troca da regra (horas ↔ percentual) |
 | `tests/requisitos.test.js` | Disciplina obrigatória, formato automático, período de inscrições, configurações novas, consulta de certificado (inclusive CPF com e-mail incorreto) |
+| `tests/upload.test.js` | Inscrição multipart (PDF, DOC, DOCX, ODT), extensão inválida, arquivo falso, tamanho, resumo de 2000 caracteres, obrigatoriedades, instituição do externo, atomicidade (sem aluno sem arquivo, sem arquivo órfão), listagem, detalhe e download (admin 200, professor 403, sem login 401) |
 | `tests/certificados.test.js` | Emissão (acesso, só elegíveis, não reenviar, falha isolada, simular, trava), geração do PDF, download público |
 | `tests/limites.test.js` | Rate limit da consulta, do download e do login |
 | `tests/utils.test.js` | Funções puras: CPF, elegibilidade, datas, disciplinas |
@@ -166,8 +170,37 @@ Nas demais rotas protegidas, envie `Authorization: Bearer <token>`.
 
 Campos obrigatórios: `nome` (nome e sobrenome), `email`, `telefone`, `cpf`, `curso`, `disciplina`.
 Opcionais, para **participantes externos** (o edital aceita trabalhos de fora da instituição): `matricula` (só alunos da Uninassau; sem ela fica vazia) e `instituicao` (até 150 caracteres). Se a matrícula for informada, continua validada (4 a 20 dígitos).
+Opcionais: `resumo` (texto de até **2000 caracteres**; quebras de linha CRLF contam como uma) e o arquivo do trabalho (veja abaixo).
 Campo opcional `tipo`: `"aluno"` (matrícula obrigatória) ou `"externo"` (a matrícula é ignorada e gravada vazia). Sem `tipo`, vale a regra de matrícula opcional. O `curso` é texto livre (o front oferece a lista de cursos e a opção "Outros" com campo para digitar).
 CPF, telefone e matrícula podem vir com ou sem máscara; o servidor guarda só dígitos.
+Com `tipo: "externo"`, a `instituicao` é **obrigatória** (desligue com `INSTITUICAO_OBRIGATORIA_EXTERNO=false`).
+
+**Resumo e arquivo (envio multipart):** a rota aceita JSON (como antes, sem arquivo) **ou** `multipart/form-data` com os mesmos
+campos de texto e o arquivo no campo `arquivo`, tudo em **uma única requisição** (inscrição e arquivo são gravados na mesma
+transação; se algo falhar, nada fica salvo e o participante pode tentar de novo sem levar 409).
+No multipart todos os campos chegam como texto e o `Content-Type` (com o `boundary`) é definido pelo cliente.
+
+| Regra do arquivo | Valor |
+|---|---|
+| Formatos | `.pdf`, `.doc`, `.docx`, `.odt` (extensão **e** primeiros bytes conferem: PDF `%PDF-`, DOC `D0 CF 11 E0 A1 B1 1A E1`, DOCX/ODT `PK\x03\x04`) |
+| Tamanho | até `UPLOAD_MAX_MB` (10 MB por padrão); um arquivo por inscrição; arquivo vazio é recusado |
+| Obrigatório? | não (`ARQUIVO_OBRIGATORIO=true` exige; `RESUMO_OBRIGATORIO=true` exige o resumo) |
+| Onde fica | na tabela `arquivos_inscricao` (no banco; o disco do Render é apagado a cada reinício) |
+| Tipo MIME | escolhido pelo servidor pela extensão; o `Content-Type` do cliente é ignorado |
+
+Erros de arquivo voltam em `campos.arquivo` (400), junto com os erros dos outros campos, por exemplo:
+`"Envie um arquivo PDF, DOC, DOCX ou ODT."`, `"O arquivo deve ter até 10 MB."`, `"O arquivo não parece ser um PDF válido."`,
+`"Envie apenas um arquivo."`. Erros do resumo: `campos.resumo` (`"O resumo deve ter no máximo 2000 caracteres."`).
+
+```bash
+# Use --form-string para campos de texto: com -F, um valor que começa com "(" (ex.: telefone) vira multipart aninhado.
+curl -X POST http://localhost:3000/api/inscricoes \
+  --form-string 'tipo=externo' --form-string 'nome=Maria da Silva' --form-string 'email=maria@exemplo.com' \
+  --form-string 'telefone=(86) 99999-1234' --form-string 'cpf=529.982.247-25' --form-string 'curso=Pedagogia' \
+  --form-string 'instituicao=UFPI' --form-string 'disciplina=PIC' --form-string 'formato=banner' \
+  --form-string 'resumo=Texto do resumo do trabalho.' \
+  -F 'arquivo=@trabalho.pdf'
+```
 
 **Disciplina e formato:** `disciplina` precisa ser uma de `APIExt I`, `APIExt II`, `APIExt III`, `APIExt IV`,
 `APIExt V`, `APIExt VI`, `PIC` ou `Outras` (escrita exata). O `formato` do trabalho é definido pelo servidor:
@@ -196,7 +229,7 @@ curl -X POST http://localhost:3000/api/inscricoes \
   }'
 ```
 
-- **201:** `{ "mensagem": "...", "aluno": { "id", "nome", "email", "cpf": "***.982.247-**", "curso", "instituicao", "disciplina", "formato", "criado_em" } }`
+- **201:** `{ "mensagem": "...", "aluno": { "id", "nome", "email", "cpf": "***.982.247-**", "curso", "instituicao", "disciplina", "formato", "criado_em", "tem_resumo", "tem_arquivo" } }`
 - **400:** `campos` com a mensagem de cada campo inválido (ex.: `campos.formato` para PIC sem formato)
 - **409:** CPF ou e-mail repetido, com `campos.cpf` e/ou `campos.email`
 - **403:** fora do período de inscrições (veja `inscricoes_de`, `inscricoes_ate` e `ignorar_datas` em `/api/configuracoes`).
@@ -225,7 +258,25 @@ curl -H "Authorization: Bearer $TOKEN_PROF" "http://localhost:3000/api/alunos?bu
 curl -H "Authorization: Bearer $TOKEN_PROF" "http://localhost:3000/api/alunos?evento_id=1"
 ```
 
-Resposta: `{ "total": 1, "alunos": [ { "id", "nome", "email", "telefone", "cpf", "matricula", "curso", "instituicao", "disciplina", "formato", "criado_em", "presente"? } ] }`.
+Resposta: `{ "total": 1, "alunos": [ { "id", "nome", "email", "telefone", "cpf", "matricula", "curso", "instituicao", "disciplina", "formato", "criado_em", "tem_arquivo", "tem_resumo", "presente"? } ] }`.
+`tem_arquivo` e `tem_resumo` são booleanos: a listagem nunca traz o conteúdo do arquivo nem o texto do resumo.
+
+### `GET /api/alunos/:id` (somente admin)
+
+Detalhe de uma inscrição, para o painel de submissões: os campos da listagem (CPF mascarado) mais o `resumo` completo
+(ou `null`) e o `arquivo` (ou `null`) com `{ nome_original, extensao, tipo_mime, tamanho, criado_em }`, sem o conteúdo.
+`401` sem login, `403` para professor, `404` se não existir, `400` se o id for inválido.
+
+### `GET /api/alunos/:id/arquivo` (somente admin)
+
+Baixa o arquivo enviado na inscrição. Resposta `200` com o conteúdo original e os cabeçalhos
+`Content-Type` (pela extensão), `Content-Disposition: attachment` (nome sanitizado, com `filename*` em UTF-8),
+`X-Content-Type-Options: nosniff` e `Cache-Control: private, no-store`. `404` se o participante não enviou arquivo.
+No front, baixe com `fetch` + `Authorization` e `blob()` (o link direto não envia o token).
+
+```bash
+curl -H "Authorization: Bearer $TOKEN_ADMIN" -o trabalho.pdf "http://localhost:3000/api/alunos/1/arquivo"
+```
 
 ### `POST /api/frequencia` (professor, admin)
 
@@ -464,6 +515,7 @@ navegador bloqueia as chamadas (erro de CORS).
 - Senhas do seed só valem na primeira criação do usuário. Para trocar depois, altere direto no banco ou crie uma rota de troca de senha.
 - Em produção as inscrições só funcionam de `inscricoes_de` a `inscricoes_ate` (16 a 30/11/2026 por padrão). Para testar antes, o admin liga `ignorar_datas` e **desliga de novo** antes do evento.
 - O plano gratuito dessas plataformas hiberna o serviço e pode limitar ou expirar o banco: confira as regras atuais do plano antes da apresentação e faça um teste completo no link público com dados fictícios.
+- **Arquivos das inscrições:** ficam no PostgreSQL (tabela `arquivos_inscricao`), então contam no limite de armazenamento do banco do plano. Confira esse limite no painel do Render antes de abrir as inscrições e faça backup (exportar inscritos e baixar os arquivos) ao final do período. Nenhuma versão do código executa ou abre o arquivo: o servidor só o guarda e o entrega como download ao admin. Ele **não é verificado contra vírus**: o admin deve abri-lo como abriria qualquer anexo de e-mail.
 - Use HTTPS (os dois fornecem) e mantenha `CORS_ORIGIN` restrito ao link do front-end.
 
 ## 10. Certificado em PDF e e-mail
