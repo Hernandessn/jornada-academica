@@ -19,7 +19,9 @@ async function requisicao(
   corpo,
   { auth = false, limite = TEMPO_LIMITE_MS } = {},
 ) {
-  const cabecalhos = { "Content-Type": "application/json" };
+  // FormData (upload): o navegador define o Content-Type com o boundary; não definir aqui.
+  const ehForm = typeof FormData !== "undefined" && corpo instanceof FormData;
+  const cabecalhos = ehForm ? {} : { "Content-Type": "application/json" };
   if (auth) {
     const token = sessionStorage.getItem("jr_token");
     if (token) cabecalhos.Authorization = `Bearer ${token}`;
@@ -31,7 +33,7 @@ async function requisicao(
     resposta = await fetch(`${API_URL}${rota}`, {
       method: metodo,
       headers: cabecalhos,
-      body: corpo ? JSON.stringify(corpo) : undefined,
+      body: corpo ? (ehForm ? corpo : JSON.stringify(corpo)) : undefined,
       signal: controle.signal,
     });
   } catch {
@@ -62,8 +64,9 @@ async function requisicao(
 }
 
 // ---------- Públicas ----------
+// "dados" pode ser um objeto (JSON) ou um FormData (com arquivo). Upload: até 2 minutos.
 export const inscrever = (dados) =>
-  requisicao("POST", "/api/inscricoes", dados);
+  requisicao("POST", "/api/inscricoes", dados, { limite: 120000 });
 export const listarEventos = () => requisicao("GET", "/api/eventos");
 export const login = (email, senha) =>
   requisicao("POST", "/api/auth/login", { email, senha });

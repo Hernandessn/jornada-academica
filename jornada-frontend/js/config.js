@@ -12,6 +12,13 @@ export const EVENTO = {
   local: "UNINASSAU Teresina - PI",
   lema: "Conhecimento que conecta pessoas e transforma realidades.",
 };
+// Regras do formulário de inscrição (o servidor valida de novo; estes valores são para conforto).
+export const RESUMO_MAX = 2000; // caracteres
+export const ARQUIVO_MAX_MB = 10; // igual ao UPLOAD_MAX_MB do back-end
+export const ARQUIVO_EXTENSOES = [".pdf", ".doc", ".docx", ".odt"];
+// Créditos do rodapé. Só aparece o que estiver preenchido.
+export const ORIENTADOR = "Juaceli Junior";
+export const EQUIPES = []; // ex.: ["Equipe A", "Equipe B"] (nomes ainda a definir)
 // EXEMPLO: troque pelos contatos reais. Enquanto "exemplo" for true, o rodapé não os mostra.
 export const SUPORTE = {
   exemplo: true,
